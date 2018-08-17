@@ -28,9 +28,10 @@ def process_config(json_file):
     do_load_exp = "_run" in config.exp_name
     if do_load_exp:
         exp_name = list(experiment_folder.glob('*' + config.exp_name))
-        if len(exp_name):
+        if len(exp_name) and len(list((exp_name[0] / "checkpoint").glob("latest_epoch*"))):
             config.exp_name = exp_name[-1].stem
-            # TODO AH define config.load_model = and config.model_epoch =
+            config.load_model = list((exp_name[0] / "checkpoint").glob("latest_epoch*"))[0]
+            config.model_epoch = int(config.load_model.stem[13:18])
         else:
             do_load_exp = False
     if not do_load_exp:
