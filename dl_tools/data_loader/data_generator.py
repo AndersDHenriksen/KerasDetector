@@ -51,7 +51,7 @@ class GolfSequence(Sequence):
 
 def get_data(config):
 
-    print('Loading data ...', end='')
+    print('Loading data ... ', end='')
     # Load data from files
     data_path = pathlib.Path('../Data/GolfBall/images')
     label_path = pathlib.Path('../Data/GolfBall/ball_uv')

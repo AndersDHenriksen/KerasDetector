@@ -2,7 +2,7 @@ from keras.models import Sequential
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.core import Activation, Dense, Dropout, Flatten, Lambda
-
+import numpy as np
 
 class MediumNet:
     @staticmethod
@@ -42,7 +42,13 @@ class MediumNet:
         if softmax:
             model.add(Activation("softmax"))
         if scale_adjust_wb is not None:
-            model.add(Lambda(lambda x: scale_adjust_wb[0] * x + scale_adjust_wb[1]))
+            # The below line doesn't save/load well as this is a custom object. Thus replaced by dense layer
+            # model.add(Lambda(lambda x: scale_adjust_wb[0] * x + scale_adjust_wb[1]))
+            input_shape = (None, classes)
+            scale_layer = Dense(classes, trainable=False, input_shape=input_shape)
+            scale_layer.build(input_shape=input_shape)
+            scale_layer.set_weights([np.diag(scale_adjust_wb[0]), scale_adjust_wb[1]])
+            model.add(scale_layer)
 
         # return the constructed network architecture
         return model

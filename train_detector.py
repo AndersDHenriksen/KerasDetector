@@ -5,7 +5,7 @@ from dl_tools.utils.read_config import process_config
 from keras.optimizers import Adam
 from keras.models import load_model
 from keras.callbacks import TensorBoard, ReduceLROnPlateau
-
+import keras.backend as K
 
 # read config JSON file
 config = process_config(r"./golf_config.json")
@@ -13,10 +13,10 @@ config = process_config(r"./golf_config.json")
 # load data
 data_generator, validation_data, scale_factor_wb = data_generator.get_data(config)
 
-# load model or create new #
+# load model or create new
 if config.load_model:
     model = load_model(config.load_model)
-    # To change learning rate use: model.lr.set_value(config.learning_rate) #I think or recompile
+    K.set_value(model.optimizer.lr, config.learning_rate)
 else:
     # initialize the optimizer and model
     opt = Adam(lr=config.learning_rate)
@@ -52,6 +52,7 @@ if config.save_final_model:
     model.save(config.checkpoint_dir + "final_model.hdf5")
     # Convert to pb: python keras_to_tensorflow.py -input_model_file (config.checkpoint_dir / "final_model.hdf5")
 
+# -------------------------------------------------------------------------------------------------------------------- #
 # usage: conda activate keras
 # usage: python train_detector.py
 # usage: tensorboard --logdir "C:\Users\ahe\Google Drive\TrackMan\01. FullSwing\DeepLearning\experiments"
