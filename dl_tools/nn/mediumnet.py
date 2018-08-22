@@ -1,7 +1,7 @@
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
-from keras.layers.core import Activation, Dense, Dropout, Flatten, Lambda
+from keras.layers.core import Activation, Dense, Dropout, Flatten
 import numpy as np
 
 class MediumNet:
@@ -12,7 +12,7 @@ class MediumNet:
         chan_dim = -1
 
         # 1. CONV => RELU => BN => POOL
-        model.add(Conv2D(48, (9, 9), strides=(5, 5), input_shape=input_shape))
+        model.add(Conv2D(48, (9, 9), strides=(4, 4), input_shape=input_shape))
         model.add(Activation("relu"))
         #model.add(BatchNormalization(axis=chan_dim))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -45,7 +45,7 @@ class MediumNet:
             # The below line doesn't save/load well as this is a custom object. Thus replaced by dense layer
             # model.add(Lambda(lambda x: scale_adjust_wb[0] * x + scale_adjust_wb[1]))
             input_shape = (None, classes)
-            scale_layer = Dense(classes, trainable=False, input_shape=input_shape)
+            scale_layer = Dense(classes, trainable=False, input_shape=input_shape, )
             scale_layer.build(input_shape=input_shape)
             scale_layer.set_weights([np.diag(scale_adjust_wb[0]), scale_adjust_wb[1]])
             model.add(scale_layer)

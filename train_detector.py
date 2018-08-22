@@ -2,6 +2,7 @@ from dl_tools.nn.mediumnet import MediumNet
 from dl_tools.callbacks.epochcheckpoint import EpochCheckpoint
 from dl_tools.data_loader import data_generator
 from dl_tools.utils.read_config import process_config
+from dl_tools.utils.freeze_tools import save_frozen_protobuf
 from keras.optimizers import Adam
 from keras.models import load_model
 from keras.callbacks import TensorBoard, ReduceLROnPlateau
@@ -50,7 +51,8 @@ if config.do_evaluate:
 
 if config.save_final_model:
     model.save(config.checkpoint_dir + "final_model.hdf5")
-    # Convert to pb: python keras_to_tensorflow.py -input_model_file (config.checkpoint_dir / "final_model.hdf5")
+    save_frozen_protobuf(config.checkpoint_dir + "final_model.pb", K.get_session(),
+                         output_names=[out.op.name for out in model.outputs])
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # usage: conda activate keras

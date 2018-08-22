@@ -42,6 +42,6 @@ def process_config(json_file):
     config.log_dir = str(experiment_folder / config.exp_name / "log") + os.sep
     config.checkpoint_dir = str(experiment_folder / config.exp_name / "checkpoint") + os.sep
 
-    [os.makedirs(dir_path) for dir_path in [config.log_dir, config.checkpoint_dir] if not Path(dir_path).exists()]
+    [Path(dir_path).mkdir(parents=True, exist_ok=True) for dir_path in [config.log_dir, config.checkpoint_dir]]
 
     return config
