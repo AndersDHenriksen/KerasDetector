@@ -23,6 +23,8 @@ else:
     opt = Adam(lr=config.learning_rate)
     model = MediumNet.build(config, 2, softmax=False, scale_adjust_wb=scale_factor_wb)
     model.compile(loss="mean_squared_error", optimizer=opt, metrics=["mae"])
+# print network info
+print(model.summary())
 
 # define callbacks. Learning rate decrease, tensorboard etc.
 model_checkpoint = EpochCheckpoint(config.checkpoint_dir, start_epoch=config.model_epoch, best_limit=4)

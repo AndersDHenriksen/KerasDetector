@@ -42,7 +42,7 @@ def save_frozen_protobuf(save_path, session, keep_var_names=None, output_names=N
     K.set_image_data_format('channels_last')
     frozen_graph = freeze_session(session, keep_var_names=keep_var_names,
                                   output_names=output_names, clear_devices=clear_devices)
-    tf.train.write_graph(frozen_graph, save_path.parent, save_path.name, as_text=False)
+    tf.train.write_graph(frozen_graph, str(save_path.parent), str(save_path.name), as_text=False)
 
 # Code below is alternative method which might work better if multiple outputs
 

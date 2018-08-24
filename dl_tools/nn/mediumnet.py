@@ -12,15 +12,20 @@ class MediumNet:
         chan_dim = -1
 
         # 1. CONV => RELU => BN => POOL
-        model.add(Conv2D(48, (9, 9), strides=(4, 4), input_shape=input_shape))
+        model.add(Conv2D(48, (7, 7), strides=(3, 3), input_shape=input_shape))
         model.add(Activation("relu"))
         #model.add(BatchNormalization(axis=chan_dim))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         # 2. CONV => RELU => BN => POOL
-        model.add(Conv2D(96, (3, 3)))
+        model.add(Conv2D(96, (5, 5)))
         model.add(Activation("relu"))
         #model.add(BatchNormalization(axis=chan_dim))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        # 3. CONV => RELU => BN => POOL
+        model.add(Conv2D(128, (3, 3)))
+        model.add(Activation("relu"))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         # 1. FC => RELU => BN => FC
