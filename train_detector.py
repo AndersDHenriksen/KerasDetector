@@ -1,4 +1,4 @@
-from dl_tools.nn.mediumnet import MediumNet
+from dl_tools.nn.ConvTransform import ConvTransform, CenterOfMass
 from dl_tools.callbacks.epochcheckpoint import EpochCheckpoint
 from dl_tools.data_loader import data_generator
 from dl_tools.utils.read_config import process_config
@@ -16,12 +16,14 @@ data_generator, validation_data, scale_factor_wb = data_generator.get_data(confi
 
 # load model or create new
 if config.load_model:
-    model = load_model(config.load_model)
+    center_of_mass = CenterOfMass([s // 4 for s in config.input_shape[:2]])
+    custom_objects = {'center_of_mass': center_of_mass}
+    model = load_model(config.load_model, custom_objects=custom_objects)
     K.set_value(model.optimizer.lr, config.learning_rate)
 else:
     # initialize the optimizer and model
     opt = Adam(lr=config.learning_rate)
-    model = MediumNet.build(config, 2, softmax=False, scale_adjust_wb=scale_factor_wb)
+    model = ConvTransform.build(config)
     model.compile(loss="mean_squared_error", optimizer=opt, metrics=["mae"])
 # print network info
 print(model.summary())
