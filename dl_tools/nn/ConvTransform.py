@@ -6,11 +6,11 @@ import numpy as np
 
 
 class CenterOfMass:
-    def __init__(self, input_shape):
-        u_cor, v_cor = np.meshgrid(np.arange(input_shape[1], dtype=np.float),
-                                   np.arange(input_shape[0], dtype=np.float))
+    def __init__(self, input_shape, scale_factors_uv):
+        u_cor, v_cor = np.meshgrid(np.arange(input_shape[1], dtype=np.float), np.arange(input_shape[0], dtype=np.float))
         self._u_cor = u_cor
         self._v_cor = v_cor
+        self._scale_factors_uv = scale_factors_uv
 
     @property
     def __name__(self):
@@ -18,8 +18,8 @@ class CenterOfMass:
 
     def __call__(self, image_stack):
         image_sum = K.sum(image_stack, axis=(1, 2))
-        com_u = 4 * K.sum(self._u_cor * image_stack, axis=(1, 2)) / image_sum
-        com_v = 4 * K.sum(self._v_cor * image_stack, axis=(1, 2)) / image_sum
+        com_u = self._scale_factors_uv[0] * K.sum(self._u_cor * image_stack, axis=(1, 2)) / image_sum
+        com_v = self._scale_factors_uv[1] * K.sum(self._v_cor * image_stack, axis=(1, 2)) / image_sum
         return K.stack([com_u, com_v], axis=1)
 
 
@@ -56,7 +56,7 @@ class ConvTransform:
 
         final_image_shape = [s // 4 for s in input_shape[:2]]
         model.add(Reshape(final_image_shape))
-        model.add(Lambda(CenterOfMass(final_image_shape), output_shape=(2,)))
+        model.add(Lambda(CenterOfMass(final_image_shape, scale_factors_uv=(4, 4)), output_shape=(2,)))
 
         # return the constructed network architecture
         return model
