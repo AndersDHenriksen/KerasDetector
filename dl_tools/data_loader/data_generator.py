@@ -53,8 +53,8 @@ def get_data(config):
 
     print('Loading data ... ', end='')
     # Load data from files
-    data_path = pathlib.Path('../Data/GolfBall/images')
-    label_path = pathlib.Path('../Data/GolfBall/ball_uv')
+    data_path = pathlib.Path('../Data/GolfHosel/images')
+    label_path = pathlib.Path('../Data/GolfHosel/hosel_uv')
     input_all = np.array([np.load(i) for i in data_path.glob('*.npy')])
     y_all = np.array([np.load(i) for i in label_path.glob('*.npy')])
     print('Done')
@@ -71,7 +71,6 @@ def get_data(config):
         while True:
             idx = np.random.choice(y_train.shape[0], config.batch_size)
             X, y = X_train[idx], y_train[idx]
-            vertical_flip_random(X, y)
             height_width_shift_random(X, y)
             yield X, y
 

@@ -24,7 +24,7 @@ def get_config_from_json(json_file):
 def process_config(json_file):
     config, _ = get_config_from_json(json_file)
     config.load_model = None
-    experiment_folder = Path("../Experiments/GolfBall")
+    experiment_folder = Path("../Experiments/GolfHosel")
     do_load_exp = "_run" in config.exp_name
     if do_load_exp:
         exp_name = list(experiment_folder.glob('*' + config.exp_name))

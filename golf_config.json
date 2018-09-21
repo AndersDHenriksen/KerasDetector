@@ -3,7 +3,7 @@
   "training_epochs": 1000,
   "num_iter_per_epoch": 400,
   "batch_size": 32,
-  "input_shape": [144, 100, 4],
+  "input_shape": [240, 320, 4],
   "test_split_ratio": 0.1,
   "learning_rate": 0.000010,
   "use_learning_rate_decay": false,

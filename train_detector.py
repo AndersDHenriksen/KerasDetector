@@ -62,7 +62,7 @@ if config.save_final_model:
 # -------------------------------------------------------------------------------------------------------------------- #
 # usage: conda activate keras
 # usage: python train_detector.py
-# usage: tensorboard --logdir "C:\Users\ahe\Google Drive\TrackMan\01. FullSwing\DeepLearning\Experiments\GolfBall"
+# usage: tensorboard --logdir "C:\Users\ahe\Google Drive\TrackMan\01. FullSwing\DeepLearning\Experiments\GolfHosel"
 # -------------------------------------------------------------------------------------------------------------------- #
 # import cv2, pathlib, numpy
 # net = cv2.dnn.readNetFromTensorflow(pb_path)
