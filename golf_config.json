@@ -1,6 +1,6 @@
 {
   "exp_name": "conv_reduce",
-  "training_epochs": 2000,
+  "training_epochs": 1000,
   "num_iter_per_epoch": 400,
   "batch_size": 32,
   "input_shape": [144, 100, 4],
