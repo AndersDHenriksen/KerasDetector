@@ -3,7 +3,7 @@ import h5py
 import os
 
 class HDF5DatasetWriter:
-	def __init__(self, dims, outputPath, dataKey="images",
+	def __init__(self, dims, outputPath, label_dim=1, label_dtype="int", dataKeys=("X", "y"),
 		bufSize=1000):
 		# check to see if the output path exists, and if so, raise
 		# an exception
@@ -16,46 +16,43 @@ class HDF5DatasetWriter:
 		# one to store the images/features and another to store the
 		# class labels
 		self.db = h5py.File(outputPath, "w")
-		self.data = self.db.create_dataset(dataKey, dims,
-			dtype="float")
-		self.labels = self.db.create_dataset("labels", (dims[0],),
-			dtype="int")
+		self.X = self.db.create_dataset(dataKeys[0], dims, dtype="float")
+		self.y = self.db.create_dataset(dataKeys[1], (dims[0], label_dim), dtype=label_dtype)
 
 		# store the buffer size, then initialize the buffer itself
 		# along with the index into the datasets
 		self.bufSize = bufSize
-		self.buffer = {"data": [], "labels": []}
+		self.buffer = {"X": [], "y": []}
 		self.idx = 0
 
 	def add(self, rows, labels):
 		# add the rows and labels to the buffer
-		self.buffer["data"].extend(rows)
-		self.buffer["labels"].extend(labels)
+		self.buffer["X"].extend(rows)
+		self.buffer["y"].extend(labels)
 
 		# check to see if the buffer needs to be flushed to disk
-		if len(self.buffer["data"]) >= self.bufSize:
+		if len(self.buffer["X"]) >= self.bufSize:
 			self.flush()
 
 	def flush(self):
 		# write the buffers to disk then reset the buffer
-		i = self.idx + len(self.buffer["data"])
-		self.data[self.idx:i] = self.buffer["data"]
-		self.labels[self.idx:i] = self.buffer["labels"]
+		i = self.idx + len(self.buffer["X"])
+		self.X[self.idx:i] = self.buffer["X"]
+		self.y[self.idx:i] = self.buffer["y"]
 		self.idx = i
-		self.buffer = {"data": [], "labels": []}
+		self.buffer = {"X": [], "y": []}
 
 	def storeClassLabels(self, classLabels):
 		# create a dataset to store the actual class label names,
 		# then store the class labels
 		dt = h5py.special_dtype(vlen=str) # `vlen=unicode` for Py2.7
-		labelSet = self.db.create_dataset("label_names",
-			(len(classLabels),), dtype=dt)
+		labelSet = self.db.create_dataset("label_names", (len(classLabels),), dtype=dt)
 		labelSet[:] = classLabels
 
 	def close(self):
 		# check to see if there are any other entries in the buffer
 		# that need to be flushed to disk
-		if len(self.buffer["data"]) > 0:
+		if len(self.buffer["X"]) > 0:
 			self.flush()
 
 		# close the dataset
