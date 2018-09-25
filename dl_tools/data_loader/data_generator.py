@@ -60,7 +60,7 @@ def get_data(config):
     # Load data from files
     data_path = Path('../Data/GolfHosel/images')
     label_path = Path('../Data/GolfHosel/hosel_uv')
-    if config.hdf5_path == "": # Work in RAM
+    if config.hdf5_path == "":  # Work in RAM
         input_all = np.array([np.load(i) for i in data_path.glob('*.npy')])
         y_all = np.array([np.load(i) for i in label_path.glob('*.npy')])
         np.save(str(data_path) + '.npy', input_all)
@@ -89,7 +89,7 @@ def get_data(config):
                     iterator = zip(X_paths, y_paths)
                 for X_path, y_path in iterator:
                     X = np.load(X_path).astype(np.float) / 255.0
-                    y = np.load(y_path).astype(np.float) / 255.0
+                    y = np.load(y_path)
                     writer.add([X], [y])
                 writer.close()
 
