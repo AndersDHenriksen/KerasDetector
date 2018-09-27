@@ -29,7 +29,7 @@ else:
 model.summary()
 
 # define callbacks. Learning rate decrease, tensorboard etc.
-model_checkpoint = EpochCheckpoint(config.checkpoint_dir, start_epoch=config.model_epoch, best_limit=4)
+model_checkpoint = EpochCheckpoint(config.checkpoint_dir, start_epoch=config.model_epoch, best_limit=40)
 tensorboard = TensorBoard(log_dir=config.log_dir)
 callbacks = [model_checkpoint, tensorboard]
 if config.use_learning_rate_decay:
