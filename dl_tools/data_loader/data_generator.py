@@ -5,6 +5,11 @@ from keras.preprocessing.image import ImageDataGenerator  # Currently not used
 import h5py
 from dl_tools.io import HDF5DatasetWriter
 from operator import itemgetter
+ocv_present = True
+try:
+    import cv2
+except ImportError:
+    ocv_present = False
 
 
 def train_test_split(X, y, test_split_ratio, random_state=0):
@@ -30,7 +35,11 @@ def height_width_shift_random(X, y, width_range=2, height_range=2):
     batch_size, h, w = X.shape[:3]
     width_shift = np.random.randint(2 * width_range + 1, size=batch_size)
     height_shift = np.random.randint(2 * height_range + 1, size=batch_size)
-    X_padded = np.pad(X, ((0, 0), (height_range, height_range), (width_range, width_range), (0, 0)), 'edge')
+    if ocv_present:
+        X_padded = np.array([cv2.copyMakeBorder(x, height_range, height_range, width_range, width_range,
+                                                cv2.BORDER_REPLICATE) for x in X])
+    else:
+        X_padded = np.pad(X, ((0, 0), (height_range, height_range), (width_range, width_range), (0, 0)), 'edge')
     for i in range(batch_size):
         X[i, ...] = X_padded[i, height_shift[i]: height_shift[i] + h, width_shift[i]: width_shift[i] + w, :]
     y -= np.array([width_shift - width_range, height_shift - height_range]).T
