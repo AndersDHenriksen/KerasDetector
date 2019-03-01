@@ -68,7 +68,7 @@ if __name__ == '__main__':
 # -------------------------------------------------------------------------------------------------------------------- #
 # usage: conda activate keras
 # usage: python train_detector.py
-# usage: tensorboard --logdir "C:\Users\ahe\Google Drive\TrackMan\01. FullSwing\DeepLearning\Experiments\GolfHosel"
+# usage: tensorboard --logdir "/home/ahe/TensorFlow/experiments/GolfHosel"
 # -------------------------------------------------------------------------------------------------------------------- #
 # import cv2, pathlib, numpy
 # net = cv2.dnn.readNetFromTensorflow(pb_path)

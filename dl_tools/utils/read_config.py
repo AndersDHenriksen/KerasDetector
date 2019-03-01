@@ -3,6 +3,9 @@ from munch import Munch
 from pathlib import Path
 from datetime import datetime
 import os
+from distutils.dir_util import copy_tree
+
+copy_code_to_model_dir = True
 
 
 def get_config_from_json(json_file):
@@ -24,14 +27,14 @@ def get_config_from_json(json_file):
 def process_config(json_file):
     config, _ = get_config_from_json(json_file)
     config.load_model = None
-    experiment_folder = Path("../Experiments/GolfHosel")
+    experiment_folder = Path("/home/ahe/TensorFlow/experiments/GolfHosel")
     do_load_exp = "_run" in config.exp_name
     if do_load_exp:
         exp_name = list(experiment_folder.glob('*' + config.exp_name))
         if len(exp_name) and len(list((exp_name[0] / "checkpoint").glob("latest_epoch*"))):
             config.exp_name = exp_name[-1].stem
             model_chkpoints = list((exp_name[0] / "checkpoint").glob("latest_epoch*"))
-            config.load_model = sorted(model_chkpoints, key = lambda p: int(p.stem[13:18]))[-1]
+            config.load_model = sorted(model_chkpoints, key=lambda p: int(p.stem[13:18]))[-1]
             config.model_epoch = int(config.load_model.stem[13:18])
         else:
             do_load_exp = False
@@ -44,5 +47,9 @@ def process_config(json_file):
     config.checkpoint_dir = str(experiment_folder / config.exp_name / "checkpoint") + os.sep
 
     [Path(dir_path).mkdir(parents=True, exist_ok=True) for dir_path in [config.log_dir, config.checkpoint_dir]]
+
+    if copy_code_to_model_dir:
+        code_dir = str(experiment_folder / config.exp_name / "code") + os.sep
+        _ = copy_tree(src=__file__[:__file__.find('dl_tools')], dst=code_dir, update=1, verbose=0)
 
     return config
