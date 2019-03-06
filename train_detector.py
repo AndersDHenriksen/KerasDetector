@@ -20,7 +20,7 @@ def train():
     if config.load_model:
         center_of_mass = CenterOfMass([s // 4 for s in config.input_shape[:2]], (4, 4))
         custom_objects = {'center_of_mass': center_of_mass}
-        model = load_model(config.load_model, custom_objects=custom_objects)
+        model = load_model(str(config.load_model), custom_objects=custom_objects)
         K.set_value(model.optimizer.lr, config.learning_rate)
     else:
         # initialize the optimizer and model
@@ -31,7 +31,7 @@ def train():
     model.summary()
 
     # define callbacks. Learning rate decrease, tensorboard etc.
-    model_checkpoint = EpochCheckpoint(config.checkpoint_dir, start_epoch=config.model_epoch, best_limit=40)
+    model_checkpoint = EpochCheckpoint(config.checkpoint_dir, start_epoch=config.model_epoch, best_limit=600)
     tensorboard = TensorBoard(log_dir=config.log_dir)
     callbacks = [model_checkpoint, tensorboard]
     if config.use_learning_rate_decay:

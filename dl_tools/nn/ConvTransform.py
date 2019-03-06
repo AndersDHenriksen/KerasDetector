@@ -1,5 +1,6 @@
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D
+from keras.layers.normalization import BatchNormalization
 from keras.layers.core import Activation, Dropout, Reshape, Lambda, Flatten, Dense
 import keras.backend as K
 import numpy as np
