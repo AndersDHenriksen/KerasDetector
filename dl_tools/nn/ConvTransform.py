@@ -57,7 +57,7 @@ class ConvTransform:
 
         final_image_shape = [s // 4 for s in input_shape[:2]]
         model.add(Reshape(final_image_shape))
-        model.add(Lambda(CenterOfMass(final_image_shape, scale_factors_uv=(4, 4)), output_shape=(2,)))
+        model.add(Lambda(CenterOfMass(final_image_shape, scale_factors_uv=(4, 4)), output_shape=(2,), trainable=False))
 
         # return the constructed network architecture
         return model
