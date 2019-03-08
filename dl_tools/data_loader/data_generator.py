@@ -67,38 +67,34 @@ def get_data(config):
 
     print('Loading data ... ', end='', flush=True)
     split_test_data_from_train_data = False
+
     # Load data from files
     data_path = Path('/home/ahe/TensorFlow/data/GolfHosel/train/images')
     label_path = Path('/home/ahe/TensorFlow/data/GolfHosel/train/hosel_uv')
     if not split_test_data_from_train_data:
         data_path_test = Path('/home/ahe/TensorFlow/data/GolfHosel/test/images')
         label_path_test = Path('/home/ahe/TensorFlow/data/GolfHosel/test/hosel_uv')
+
+    # Get image/label paths from data paths
+    X_paths = [p for p in data_path.glob('*.npy')]
+    y_paths = [p for p in label_path.glob('*.npy')]
+    if split_test_data_from_train_data:
+        X_paths_train, X_paths_test, y_paths_train, y_paths_test = train_test_split(X_paths, y_paths, config.test_split_ratio)
+    else:
+        X_paths_train, y_paths_train = X_paths, y_paths
+        X_paths_test = [p for p in data_path_test.glob('*.npy')]
+        y_paths_test = [p for p in label_path_test.glob('*.npy')]
+
     if config.hdf5_path == "":  # Work in RAM
-        input_all = np.array([np.load(i) for i in data_path.glob('*.npy')])
-        y_all = np.array([np.load(i) for i in label_path.glob('*.npy')])
-        np.save(str(data_path) + '.npy', input_all)
-        np.save(str(label_path) + '.npy', y_all)
-
-        # Split and rescale
-        if split_test_data_from_train_data:
-            X_train, X_test, y_train, y_test = train_test_split(input_all, y_all, config.test_split_ratio)
-        else:
-            X_train, y_train = input_all, y_all
-            X_test = np.array([np.load(i) for i in data_path_test.glob('*.npy')])
-            y_test = np.array([np.load(i) for i in label_path_test.glob('*.npy')])
-            np.save(str(data_path_test) + '.npy', X_test)
-            np.save(str(label_path_test) + '.npy', y_test)
-
+        X_train, X_test, y_train, y_test = [np.array([np.load(i) for i in path_list]) for path_list in
+                                            [X_paths_train, X_paths_test, y_paths_train, y_paths_test]]
+        # Rescale
         X_train, X_test = X_train.astype(np.float) / 255, X_test.astype(np.float) / 255
 
     else:
         hdf5_files = [Path(config.hdf5_path) / (data_type + ".hdf5") for data_type in ["train", "test"]]
         if not all([f.exists() for f in hdf5_files]):
             print('Writing data to HDF5 ... ', end='', flush=True)
-            X_paths = [p for p in data_path.glob('*.npy')]
-            y_paths = [p for p in label_path.glob('*.npy')]
-
-            X_paths_train, X_paths_test, y_paths_train, y_paths_test = train_test_split(X_paths, y_paths, config.test_split_ratio)
             data_sets = [(hdf5_files[0], X_paths_train, y_paths_train), (hdf5_files[1], X_paths_test, y_paths_test)]
 
             for output_path, X_paths, y_paths in data_sets:
