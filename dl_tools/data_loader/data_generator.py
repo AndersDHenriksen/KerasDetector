@@ -85,6 +85,7 @@ def get_data(config):
         X_paths_test = [p for p in data_path_test.glob('*.npy')]
         y_paths_test = [p for p in label_path_test.glob('*.npy')]
 
+    # Load images and labels
     if config.hdf5_path == "":  # Work in RAM
         X_train, X_test, y_train, y_test = [np.array([np.load(i) for i in path_list]) for path_list in
                                             [X_paths_train, X_paths_test, y_paths_train, y_paths_test]]
