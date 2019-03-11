@@ -18,7 +18,7 @@ class CenterOfMass:
         return 'center_of_mass'
 
     def __call__(self, image_stack):
-        image_sum = K.sum(image_stack, axis=(1, 2))
+        image_sum = K.sum(image_stack, axis=(1, 2)) + 1e-9
         com_u = self._scale_factors_uv[0] * K.sum(self._u_cor * image_stack, axis=(1, 2)) / image_sum
         com_v = self._scale_factors_uv[1] * K.sum(self._v_cor * image_stack, axis=(1, 2)) / image_sum
         return K.stack([com_u, com_v], axis=1)
