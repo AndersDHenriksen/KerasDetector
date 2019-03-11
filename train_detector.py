@@ -1,8 +1,10 @@
+from pathlib import Path
 from dl_tools.nn.ConvTransform import ConvTransform, CenterOfMass
 from dl_tools.callbacks.epochcheckpoint import EpochCheckpoint
 from dl_tools.data_loader import data_generator
 from dl_tools.utils.read_config import process_config
 from dl_tools.utils.freeze_tools import save_frozen_protobuf, augment_for_ocv
+from dl_tools.utils.tensorboardtools import tensorboard_launch
 from keras.optimizers import Adam
 from keras.models import load_model
 from keras.callbacks import TensorBoard, ReduceLROnPlateau
@@ -11,7 +13,7 @@ import keras.backend as K
 
 def train():
     # read config JSON file
-    config = process_config(r"./golf_config.json")
+    config = process_config(Path(__file__).parent / 'golf_config.json')
 
     # load data
     data_gen, validation_data, scale_factor_wb = data_generator.get_data(config)
@@ -37,6 +39,9 @@ def train():
     if config.use_learning_rate_decay:
         learning_rate_decay = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, verbose=1, cooldown=30)
         callbacks.append(learning_rate_decay)
+
+    # launch tensorboard
+    tensorboard_launch(config.experiment_folder)
 
     # train the network
     H = model.fit_generator(

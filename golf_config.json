@@ -9,5 +9,6 @@
   "use_learning_rate_decay": false,
   "do_evaluate": false,
   "save_final_model": true,
+  "experiment_folder": "/home/ahe/TensorFlow/experiments/GolfHosel",
   "hdf5_path": ""
 }

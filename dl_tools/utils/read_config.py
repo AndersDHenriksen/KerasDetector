@@ -27,7 +27,7 @@ def get_config_from_json(json_file):
 def process_config(json_file):
     config, _ = get_config_from_json(json_file)
     config.load_model = None
-    experiment_folder = Path("/home/ahe/TensorFlow/experiments/GolfHosel")
+    experiment_folder = Path(config.experiment_folder)
     do_load_exp = "_run" in config.exp_name
     if do_load_exp:
         exp_name = list(experiment_folder.glob('*' + config.exp_name))
