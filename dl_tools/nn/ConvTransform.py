@@ -54,6 +54,7 @@ class ConvTransform:
 
         # 6. CONV, 1x1
         model.add(Conv2D(1, (1, 1)))
+        model.add(Activation("relu"))
 
         final_image_shape = [s // 4 for s in input_shape[:2]]
         model.add(Reshape(final_image_shape))
