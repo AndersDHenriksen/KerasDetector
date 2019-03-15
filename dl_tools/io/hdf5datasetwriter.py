@@ -1,10 +1,11 @@
 # import the necessary packages
 import h5py
 import os
+import numpy as np
+
 
 class HDF5DatasetWriter:
-	def __init__(self, dims, outputPath, label_dim=1, label_dtype="int", dataKeys=("X", "y"),
-		bufSize=1000):
+	def __init__(self, dims, outputPath, label_dim=1, label_dtype="int", input_dtype='float', dataKeys=("X", "y"), bufSize=1000):
 		# check to see if the output path exists, and if so, raise
 		# an exception
 		if os.path.exists(outputPath):
@@ -16,7 +17,7 @@ class HDF5DatasetWriter:
 		# one to store the images/features and another to store the
 		# class labels
 		self.db = h5py.File(outputPath, "w")
-		self.X = self.db.create_dataset(dataKeys[0], dims, dtype="float")
+		self.X = self.db.create_dataset(dataKeys[0], dims, dtype=input_dtype)
 		self.y = self.db.create_dataset(dataKeys[1], (dims[0], label_dim), dtype=label_dtype)
 
 		# store the buffer size, then initialize the buffer itself
@@ -38,7 +39,8 @@ class HDF5DatasetWriter:
 		# write the buffers to disk then reset the buffer
 		i = self.idx + len(self.buffer["X"])
 		self.X[self.idx:i] = self.buffer["X"]
-		self.y[self.idx:i] = self.buffer["y"]
+		y_np = np.array(self.buffer["y"]).reshape(self.y[self.idx:i].shape)
+		self.y[self.idx:i] = y_np
 		self.idx = i
 		self.buffer = {"X": [], "y": []}
 

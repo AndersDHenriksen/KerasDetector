@@ -16,7 +16,7 @@ def augment_for_ocv(model):
             x = Reshape(layer.output_shape[1:])(x)
             # x = tf.reshape(x, shape=[-1, layer.output_shape[1]])
             continue
-        x = layer(x)
+        x = layer(x)  # TODO only works for sequential model
 
     new_model = Model(inputs=model.layers[0].input, outputs=x)
     return new_model

@@ -37,7 +37,7 @@ def train():
     tensorboard = TensorBoard(log_dir=config.log_dir)
     callbacks = [model_checkpoint, tensorboard]
     if config.use_learning_rate_decay:
-        learning_rate_decay = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, verbose=1, cooldown=30)
+        learning_rate_decay = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=100, verbose=1, cooldown=100)
         callbacks.append(learning_rate_decay)
 
     # launch tensorboard
