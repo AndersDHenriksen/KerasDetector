@@ -63,6 +63,48 @@ def save_frozen_protobuf(save_path, session, keep_var_names=None, output_names=N
                                   output_names=output_names, clear_devices=clear_devices)
     tf.train.write_graph(frozen_graph, str(save_path.parent), str(save_path.name), as_text=False)
 
+
+
+def save_frozen_protobuf2(save_path, session, output_names=None, clear_devices=True):
+    from tensorflow.python.tools import freeze_graph
+    from tensorflow.python.tools import optimize_for_inference_lib
+
+    if isinstance(save_path, str):
+        save_path = Path(save_path)
+    K.set_learning_phase(0)
+    K.set_image_data_format('channels_last')
+
+    # fix batch norm nodes. Not working.
+    # for node in session.graph_def.node:
+    #     if node.op == 'RefSwitch':
+    #         node.op = 'Switch'
+    #         for index in range(len(node.input)):
+    #             if 'moving_' in node.input[index]:
+    #                 node.input[index] = node.input[index] + '/read'
+    #     elif node.op == 'AssignSub':
+    #         node.op = 'Sub'
+    #         if 'use_locking' in node.attr:
+    #             del node.attr['use_locking']
+
+    # Optimize for inference not working
+    # graph_def = optimize_for_inference_lib.optimize_for_inference(session.graph_def, keras_model.input_names,
+    #                                                               output_names, tf.float32.as_datatype_enum)
+    # session = tf.Session(graph=graph_def)
+
+    tf.train.write_graph(session.graph_def, str(save_path.parent), str(save_path.name), as_text=False)
+    tf.train.write_graph(session.graph_def, str(save_path.parent), str(save_path.name) + 'txt')
+    tf.train.Saver().save(session, str(save_path)[:-3] + '.chkp')
+
+    freeze_graph.freeze_graph(str(save_path) + 'txt',
+                              None, False,
+                              str(save_path)[:-3] + '.chkp',
+                              output_names[0],
+                              "save/restore_all",
+                              "save/Const:0",
+                              str(save_path)[:-3] + '_frozen.pb',
+                              clear_devices, "")
+
+
 # Code below is alternative method which might work better if multiple outputs
 
 # From https://github.com/amir-abdi/keras_to_tensorflow
