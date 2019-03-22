@@ -66,14 +66,14 @@ class GolfSequence(Sequence):
 def get_data(config):
 
     print('Loading data ... ', end='', flush=True)
-    split_test_data_from_train_data = False
+    split_test_data_from_train_data = True
 
     # Load data from files
-    data_path = Path('/home/ahe/TensorFlow/data/GolfHosel/train/images')
-    label_path = Path('/home/ahe/TensorFlow/data/GolfHosel/train/hosel_uv')
+    data_path = Path('/home/ahe/TensorFlow/data/GolfBall/images')
+    label_path = Path('/home/ahe/TensorFlow/data/GolfBall/ball_uv')
     if not split_test_data_from_train_data:
-        data_path_test = Path('/home/ahe/TensorFlow/data/GolfHosel/test/images')
-        label_path_test = Path('/home/ahe/TensorFlow/data/GolfHosel/test/hosel_uv')
+        data_path_test = Path('')
+        label_path_test = Path('')
 
     # Get image/label paths from data paths
     X_paths = [p for p in data_path.glob('*.npy')]
