@@ -9,7 +9,7 @@ def augment_for_ocv(model):
 
     x = model.layers[0].output
     for layer in model.layers[1:]:
-        if 'dropout' in layer.name:
+        if 'dropout' in layer.name or 'lambda' in layer.name:
             continue
         if 'flatten' in layer.name:
             # x = Permute([1, 2, 3])(x)
