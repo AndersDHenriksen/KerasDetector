@@ -6,6 +6,7 @@ from pathlib import Path
 def augment_for_ocv(model):
     from keras.models import Model
     from keras.layers import Reshape, Permute
+    from keras.layers.pooling import MaxPool2D
 
     x = model.layers[0].output
     for layer in model.layers[1:]:
@@ -15,6 +16,10 @@ def augment_for_ocv(model):
             # x = Permute([1, 2, 3])(x)
             x = Reshape(layer.output_shape[1:])(x)
             # x = tf.reshape(x, shape=[-1, layer.output_shape[1]])
+            continue
+        if 'global_max_pooling2d' in layer.name:
+            x = MaxPool2D(layer.input_shape[1:3], name=layer.name)(x)
+            x = Reshape(layer.output_shape[1:])(x)
             continue
         x = layer(x)  # TODO only works for sequential model
 
@@ -62,7 +67,6 @@ def save_frozen_protobuf(save_path, session, keep_var_names=None, output_names=N
     frozen_graph = freeze_session(session, keep_var_names=keep_var_names,
                                   output_names=output_names, clear_devices=clear_devices)
     tf.train.write_graph(frozen_graph, str(save_path.parent), str(save_path.name), as_text=False)
-
 
 
 def save_frozen_protobuf2(save_path, session, output_names=None, clear_devices=True):
