@@ -69,11 +69,11 @@ def get_data(config):
     split_test_data_from_train_data = False
 
     # Load data from files
-    data_path = Path('/home/ahe/TensorFlow/data/GolfHosel/train/images')
-    label_path = Path('/home/ahe/TensorFlow/data/GolfHosel/train/hosel_uv')
+    data_path = Path('/home/ahe/TensorFlow/data/RotatedHosel/train/images')
+    label_path = Path('/home/ahe/TensorFlow/data/RotatedHosel/train/hosel_uv')
     if not split_test_data_from_train_data:
-        data_path_test = Path('/home/ahe/TensorFlow/data/GolfHosel/test/images')
-        label_path_test = Path('/home/ahe/TensorFlow/data/GolfHosel/test/hosel_uv')
+        data_path_test = Path('/home/ahe/TensorFlow/data/RotatedHosel/test/images')
+        label_path_test = Path('/home/ahe/TensorFlow/data/RotatedHosel/test/hosel_uv')
 
     # Get image/label paths from data paths
     X_paths = [p for p in data_path.glob('*.npy')]
@@ -124,10 +124,10 @@ def get_data(config):
             idx = np.random.choice(y_train.shape[0], config.batch_size, replace=False)
             idx = list(np.sort(idx))
             X, y = X_train[idx], y_train[idx]
-            height_width_shift_random(X, y)
-            yield X, y
+            height_width_shift_random(X, y, height_range=0)
+            yield X, y[:, 0]
 
     # return (next_batch() for _ in range(config.num_iter_per_epoch)), (X_test, y_test)
-    return next_batch(), (X_test, y_test), (y_train[:].std(axis=0), y_train[:].mean(axis=0))
+    return next_batch(), (X_test, y_test[:, 0])
 
 
