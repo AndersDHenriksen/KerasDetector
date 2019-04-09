@@ -23,7 +23,7 @@ def tensorboard_launch(experiments_folder):
     # From: https://stackoverflow.com/questions/42158694/how-to-run-tensorboard-from-python-scipt-in-virtualenv/
 
 
-def make_image(tensor, u_annotation=None, u_prediction=None):
+def make_image(tensor, uv_annotation=None, uv_prediction=None, u_annotation=None, u_prediction=None):
     """
     Convert an numpy representation image to Image protobuf.
     Copied from https://github.com/lanpa/tensorboard-pytorch/
@@ -37,6 +37,12 @@ def make_image(tensor, u_annotation=None, u_prediction=None):
         if u is not None:
             draw = ImageDraw.Draw(image)
             draw.line([(u, 0), (u, height)], fill=c)
+    for uv, c in zip([uv_annotation, uv_prediction], [(255, 0, 0), (0, 255, 0)]):
+        if uv is not None:
+            u, v = uv
+            draw = ImageDraw.Draw(image)
+            draw.line([(u, max(0, v - 3)), (u, v + 3)], fill=c)
+            draw.line([(max(0, u - 3), v), (u + 3, v)], fill=c)
 
     output = io.BytesIO()
     image.save(output, format='PNG')
@@ -54,16 +60,19 @@ class TensorBoardImage(Callback):  #TODO Merge with tensorboard callback
         self._random_index = sorted(np.random.choice(validation_data[0].shape[0], n, replace=False))
         self._input = validation_data[0][self._random_index]
         self._images = np.uint8(self._input[:, :, :, :3] * 255)
-        self._u_annotations = validation_data[1][self._random_index]
+        self._annotations = validation_data[1][self._random_index]
 
     def on_epoch_end(self, epoch, logs={}):
         if 1 and epoch % 100 != 0:  # TODO convert to wallclock frequency?
             return
-        u_predictions = self.model.predict(self._input)
+        predictions = self.model.predict(self._input)
 
         summaries = []
-        for img, u_annotation, u_prediction, index in zip(self._images, self._u_annotations, u_predictions, self._random_index):
-            image = make_image(img, u_annotation, u_prediction)
+        for img, annotation, prediction, index in zip(self._images, self._annotations, predictions, self._random_index):
+            if self._annotations.ndim == 1:
+                image = make_image(img, u_annotation=annotation, u_prediction=prediction)
+            else:
+                image = make_image(img, uv_annotation=annotation, uv_prediction=prediction)
             summaries.append(tf.Summary.Value(tag='Predictions/{}'.format(index), image=image))
         with tf.summary.FileWriter(self.log_dir) as writer:
             writer.add_summary(tf.Summary(value=summaries), epoch)
