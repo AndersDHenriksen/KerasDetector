@@ -1,12 +1,12 @@
 from keras.models import Model
-from keras.layers import Activation, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, Lambda, Reshape
+from keras.layers import Activation, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, Reshape
 import keras.backend as K
 import numpy as np
 
 
 class CenterOfMass:
     def __init__(self, input_length):
-        self._index = np.arange(input_length)
+        self._index = np.arange(input_length, dtype=np.float32)
 
     @property
     def __name__(self):
@@ -25,16 +25,20 @@ class ConvTransform:
 
         # 1. Conv
         input = Input(input_shape)
-        X = Conv2D(8, (7, 7), strides=(2, 1), padding="same", activation='relu')(input)
+        X = Conv2D(8, (7, 7), strides=(1, 1), padding="same", activation='relu')(input)
+        X = MaxPooling2D(pool_size=(2, 1))(X)
 
         # 2. Conv
-        X = Conv2D(16, (7, 7), strides=(2, 1), padding="same", activation='relu')(X)
+        X = Conv2D(16, (7, 7), strides=(1, 1), padding="same", activation='relu')(X)
+        X = MaxPooling2D(pool_size=(2, 1))(X)
 
         # 3. Conv
-        X = Conv2D(32, (5, 5), strides=(2, 1), padding="same", activation='relu')(X)
+        X = Conv2D(32, (5, 5), strides=(1, 1), padding="same", activation='relu')(X)
+        X = MaxPooling2D(pool_size=(2, 1))(X)
 
         # 4. Conv
-        X = Conv2D(32, (5, 5), strides=(2, 1), padding="same", activation='relu')(X)
+        X = Conv2D(32, (5, 5), strides=(1, 1), padding="same", activation='relu')(X)
+        X = MaxPooling2D(pool_size=(2, 1))(X)
         X = Dropout(0.5)(X)
 
         # 5. CONV, 1x1
