@@ -14,7 +14,8 @@ class CenterOfMass:
 
     def __call__(self, vector_stack):
         vector_sum = K.sum(vector_stack, axis=1) + 1e-9
-        return K.sum(self._index * vector_stack, axis=1) / vector_sum
+        out = K.sum(self._index * vector_stack, axis=1) / vector_sum
+        return K.stack((out, out), axis=1)
 
 
 class ConvTransform:
@@ -39,16 +40,16 @@ class ConvTransform:
         # 4. Conv
         X = Conv2D(32, (5, 5), strides=(1, 1), padding="same", activation='relu')(X)
         X = MaxPooling2D(pool_size=(2, 1))(X)
-        X = Dropout(0.5)(X)
+        # X = Dropout(0.5)(X)
 
         # 5. CONV, 1x1
         X = Conv2D(12, (5, 1), activation='relu')(X)
-        X = Dropout(0.3)(X)
+        # X = Dropout(0.3)(X)
 
         # 6. CONV, 1x1
         X = Conv2D(1, (1, 1), activation='relu')(X)
         X = Reshape((input_shape[1], ))(X)
-        output = Lambda(CenterOfMass(input_shape[1]), output_shape=(1,), trainable=False)(X)
+        output = Lambda(CenterOfMass(input_shape[1]), output_shape=(2,), trainable=False)(X)
 
         model = Model(inputs=input, outputs=output)
 

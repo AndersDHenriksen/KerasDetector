@@ -125,9 +125,9 @@ def get_data(config):
             idx = list(np.sort(idx))
             X, y = X_train[idx], y_train[idx]
             height_width_shift_random(X, y, height_range=0)
-            yield X, y[:, 0]
+            yield X, np.tile(y[:, [0]], (1, 2))
 
     # return (next_batch() for _ in range(config.num_iter_per_epoch)), (X_test, y_test)
-    return next_batch(), (X_test, y_test[:, 0])
+    return next_batch(), (X_test, np.tile(y_test[:, [0]], (1, 2)))
 
 

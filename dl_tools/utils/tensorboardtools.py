@@ -60,7 +60,7 @@ class TensorBoardImage(Callback):  #TODO Merge with tensorboard callback
         self._random_index = sorted(np.random.choice(validation_data[0].shape[0], n, replace=False))
         self._input = validation_data[0][self._random_index]
         self._images = np.uint8(self._input[:, :, :, :3] * 255)
-        self._annotations = validation_data[1][self._random_index]
+        self._annotations = np.squeeze(validation_data[1][self._random_index])
 
     def on_epoch_end(self, epoch, logs={}):
         if 1 and epoch % 100 != 0:  # TODO convert to wallclock frequency?
