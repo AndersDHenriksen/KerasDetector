@@ -32,19 +32,21 @@ class ConvTransform:
         # 2. Conv
         X = Conv2D(16, (7, 7), strides=(1, 1), padding="same", activation='relu')(X)
         X = MaxPooling2D(pool_size=(2, 1))(X)
+        X = Dropout(0.3)(X)
 
         # 3. Conv
         X = Conv2D(32, (5, 5), strides=(1, 1), padding="same", activation='relu')(X)
         X = MaxPooling2D(pool_size=(2, 1))(X)
+        X = Dropout(0.3)(X)
 
         # 4. Conv
         X = Conv2D(32, (5, 5), strides=(1, 1), padding="same", activation='relu')(X)
         X = MaxPooling2D(pool_size=(2, 1))(X)
-        # X = Dropout(0.5)(X)
+        X = Dropout(0.3)(X)
 
         # 5. CONV, 1x1
         X = Conv2D(12, (5, 1), activation='relu')(X)
-        # X = Dropout(0.3)(X)
+        X = Dropout(0.3)(X)
 
         # 6. CONV, 1x1
         X = Conv2D(1, (1, 1), activation='relu')(X)
