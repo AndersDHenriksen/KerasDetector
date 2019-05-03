@@ -6,16 +6,16 @@ import numpy as np
 
 class CenterOfMass:
     def __init__(self, input_length):
-        self._index = np.arange(input_length, dtype=np.float32)
+        self._index = np.arange(input_length, dtype=np.float32)[None, :]
 
     @property
     def __name__(self):
         return 'center_of_mass'
 
     def __call__(self, vector_stack):
-        vector_sum = K.sum(vector_stack, axis=1) + 1e-9
-        out = K.sum(self._index * vector_stack, axis=1) / vector_sum
-        return K.stack((out, out), axis=1)
+        vector_sum = K.sum(vector_stack, axis=1, keepdims=True) + 1e-9
+        out = K.sum(self._index * vector_stack, axis=1, keepdims=True) / vector_sum
+        return out
 
 
 class ConvTransform:
@@ -51,9 +51,10 @@ class ConvTransform:
         # 6. CONV, 1x1
         X = Conv2D(1, (1, 1), activation='relu')(X)
         X = Reshape((input_shape[1], ))(X)
-        output = Lambda(CenterOfMass(input_shape[1]), output_shape=(2,), trainable=False)(X)
+        output = Lambda(CenterOfMass(input_shape[1]), trainable=False)(X)
 
         model = Model(inputs=input, outputs=output)
+        #TODO add L2 regularization
 
         # return the constructed network architecture
         return model
