@@ -3,7 +3,7 @@ from dl_tools.nn.ConvTransform import ConvTransform, CenterOfMass
 from dl_tools.callbacks.epochcheckpoint import EpochCheckpoint
 from dl_tools.data_loader import data_generator
 from dl_tools.utils.read_config import process_config
-from dl_tools.utils.freeze_tools import save_frozen_protobuf, augment_for_ocv
+from dl_tools.utils.freeze_tools import finalize_for_ocv
 from dl_tools.utils.tensorboardtools import tensorboard_launch
 from keras.optimizers import Adam
 from keras.models import load_model
@@ -13,7 +13,7 @@ import keras.backend as K
 
 def train():
     # read config JSON file
-    config = process_config(Path(__file__).parent / 'golf_config.json')
+    config = process_config(Path(__file__).parent / 'config.json')
 
     # load data
     data_gen, validation_data, scale_factor_wb = data_generator.get_data(config)
@@ -61,10 +61,9 @@ def train():
         # print(classification_report(testY.argmax(axis=1), predictions.argmax(axis=1), target_names=labelNames))
 
     if config.save_final_model:
-        model.save(config.checkpoint_dir + "final_model.hdf5")
-        model = augment_for_ocv(model)
-        save_frozen_protobuf(config.checkpoint_dir + "final_model.pb", K.get_session(),
-                             output_names=[out.op.name for out in model.outputs])
+        save_model_path = config.checkpoint_dir + "final_model.hdf5"
+        model.save(save_model_path)
+        finalize_for_ocv(save_model_path)
 
 
 if __name__ == '__main__':
@@ -75,10 +74,8 @@ if __name__ == '__main__':
 # usage: python train_detector.py
 # usage: tensorboard --logdir "/home/ahe/TensorFlow/experiments/GolfHosel"
 # -------------------------------------------------------------------------------------------------------------------- #
-# import cv2, pathlib, numpy
 # net = cv2.dnn.readNetFromTensorflow(pb_path)
-# image = numpy.load(next(pathlib.Path('../Data/GolfBall/images').glob('*.npy')))
-# blob = cv2.dnn.blobFromImage(image, scalefactor=1/255.0)
+# blob = cv2.dnn.blobFromImage(npy_image, scalefactor=1/255.0)
 # net.setInput(blob)
 # predictions = net.forward()
 # -------------------------------------------------------------------------------------------------------------------- #

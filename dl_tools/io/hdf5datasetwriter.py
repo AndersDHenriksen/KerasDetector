@@ -39,8 +39,7 @@ class HDF5DatasetWriter:
 		# write the buffers to disk then reset the buffer
 		i = self.idx + len(self.buffer["X"])
 		self.X[self.idx:i] = self.buffer["X"]
-		y_np = np.array(self.buffer["y"]).reshape(self.y[self.idx:i].shape)
-		self.y[self.idx:i] = y_np
+		self.y[self.idx:i] = np.array(self.buffer["y"]).reshape(self.y[self.idx:i].shape)
 		self.idx = i
 		self.buffer = {"X": [], "y": []}
 

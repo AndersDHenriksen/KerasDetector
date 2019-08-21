@@ -1,33 +1,134 @@
-from keras import backend as K
-import tensorflow as tf
 from pathlib import Path
+from keras import backend as K
+from keras.models import load_model
+import tensorflow as tf
+import os
+
+
+def finalize_for_ocv(model_path):
+    K.set_learning_phase(0)
+
+    model = load_model(model_path)
+    cv_model = augment_for_ocv(model)
+    cv_model_path = model_path.rpslit('.')[0] + '_cv.hdf5'
+    cv_model.save(cv_model_path)
+    keras_to_opencv(cv_model_path)
 
 
 def augment_for_ocv(model):
-    from keras.models import Model
-    from keras.layers import Reshape, Permute
-    from keras.layers.pooling import MaxPool2D
+    from kerassurgeon import Surgeon  # pip install kerassurgeon
+    from keras.layers import Reshape
 
-    x = model.layers[0].output
-    for layer in model.layers[1:]:
+    surgeon = Surgeon(model)
+    for layer in model.layers:
         if 'dropout' in layer.name or 'lambda' in layer.name:
-            continue
+            surgeon.add_job('delete_layer', layer)
         if 'flatten' in layer.name:
-            # x = Permute([1, 2, 3])(x)
-            x = Reshape(layer.output_shape[1:])(x)
-            # x = tf.reshape(x, shape=[-1, layer.output_shape[1]])
-            continue
-        if 'global_max_pooling2d' in layer.name:
-            x = MaxPool2D(layer.input_shape[1:3], name=layer.name)(x)
-            x = Reshape(layer.output_shape[1:])(x)
-            continue
-        x = layer(x)  # TODO only works for sequential model
-
-    new_model = Model(inputs=model.layers[0].input, outputs=x)
+            new_layer = Reshape(layer.output_shape[1:])
+            surgeon.add_job('replace_layer', layer, new_layer=new_layer)
+    new_model = surgeon.operate()
     return new_model
 
 
-# From: https://stackoverflow.com/questions/45466020/how-to-export-keras-h5-to-tensorflow-pb
+def keras_to_opencv(model_path):  # Made by Christian, works for OpenCV 4.1. For OpenCV < 4, frozen model seems to work
+    from tensorflow.python.framework import graph_util
+    from tensorflow.python.framework import graph_io
+    from tensorflow.python.tools.optimize_for_inference_lib import optimize_for_inference
+    """
+    Prepares Keras dnn model to OpenCV model inference
+    :param keras_weights: Path to Keras .h5 file with weights values generated from model.save_weights() 
+    :param keras_structure: Path to Keras json file with net structure. Generated from model.to_json()
+    :param output: Output path of Tensorflow optimized protobuf file that can be loaded with 
+    cv2.dnn.readNetFromTensorflow() 
+    :return: None  
+    """
+    # Sets the learning phase to a fixed value.
+    K.set_learning_phase(0)
+    net_model = load_model(model_path)
+    output_folder = str(Path(model_path).parent)
+
+    # # load keras model
+    # with open(keras_structure, 'r') as json_file:
+    #     loaded_model_json = json_file.read()  # read json file
+    #     net_model = K.models.model_from_json(loaded_model_json)  # create model from json
+    #     net_model.load_weights(keras_weights)  # load weights to model
+
+    # Test if successful
+    # assert net_model is not None
+
+    # Find input and output node names
+    input_nodes_names = [node.name[:-2] for node in net_model.inputs]
+    output_nodes_names = [node.name[:-2] for node in net_model.outputs]
+
+    # Freeze graph and convert variables to constants
+    sess = K.get_session()
+    saver = tf.train.Saver(tf.global_variables())
+    constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), output_nodes_names)
+    # save frozen graph
+    frozen_graph_name = "frozen_graph.pb"
+    graph_io.write_graph(constant_graph, output_folder, frozen_graph_name, as_text=False)
+    print('Saved frozen graph at: ', os.path.join(output_folder, frozen_graph_name))
+
+    # Optimize frozen graph for model inference
+    # load frozen graph
+    input_graph_def = tf.GraphDef()
+    with tf.gfile.FastGFile(os.path.join(output_folder, frozen_graph_name), "rb") as f:
+        data = f.read()
+        input_graph_def.ParseFromString(data)
+
+    # Optimize graph
+    output_graph_def = optimize_for_inference(input_graph_def, input_nodes_names, output_nodes_names, tf.float32.as_datatype_enum)
+
+    # Save inference optimized protobuf file
+    # save graph to output file
+    optimized_graph_name = "opencv_optimized.pb"
+    f = tf.gfile.FastGFile(os.path.join(output_folder, optimized_graph_name), "w")
+    f.write(output_graph_def.SerializeToString())
+    print('Saved optimized graph (ready for inference) at: ', os.path.join(output_folder, optimized_graph_name))
+
+
+
+# ---------------------------------------------- Old currently unused --------------------------------------------------
+
+
+def save_frozon_protobuf(hdf5_path, clear_devices=True):
+    from keras import backend as K
+    from keras.models import load_model
+    from tensorflow.python.tools.optimize_for_inference_lib import optimize_for_inference
+
+    if isinstance(hdf5_path, str):
+        hdf5_path = Path(hdf5_path)
+
+    # Load keras model
+    model = load_model(hdf5_path)
+    K.set_learning_phase(0)
+
+    # Freeze graph
+    frozen_graph = freeze_session(K.get_session(), output_names=[out.op.name for out in model.outputs], clear_devices=clear_devices)
+
+    # Optimize graph
+    input_nodes = [model.input.name.rsplit(':')[0]]
+    output_nodes = [model.output.name.rsplit(':')[0]]
+    optimized_graph = optimize_for_inference(frozen_graph, input_nodes, output_nodes, tf.float32.as_datatype_enum)
+
+    # Save pb file
+    tf.train.write_graph(optimized_graph, str(hdf5_path.parent), hdf5_path.stem + '.pb', as_text=False)
+
+    # Prune graph
+    graph_def = optimized_graph
+    for i in reversed(range(len(graph_def.node))):
+        if graph_def.node[i].op == 'Const':
+            del graph_def.node[i]
+        for attr in ['T', 'data_format', 'Tshape', 'N', 'Tidx', 'Tdim', 'use_cudnn_on_gpu', 'Index', 'Tperm', 'is_training', 'Tpaddings']:
+            if attr in graph_def.node[i].attr:
+                del graph_def.node[i].attr[attr]
+
+    # Save pbtxt file
+    tf.train.write_graph(graph_def, str(hdf5_path.parent), hdf5_path.stem + '.pbtxt', as_text=True)
+
+
+
+
 def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
     """
     Freezes the state of a session into a pruned computation graph.
@@ -43,30 +144,21 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
     @param clear_devices Remove the device directives from the graph for better portability.
     @return The frozen graph definition.
     """
-
     from tensorflow.python.framework.graph_util import convert_variables_to_constants
     graph = session.graph
     with graph.as_default():
         freeze_var_names = list(set(v.op.name for v in tf.global_variables()).difference(keep_var_names or []))
         output_names = output_names or []
         output_names += [v.op.name for v in tf.global_variables()]
-        input_graph_def = graph.as_graph_def(add_shapes=True)
+        # Graph -> GraphDef ProtoBuf
+        input_graph_def = graph.as_graph_def()
         if clear_devices:
             for node in input_graph_def.node:
                 node.device = ""
-        frozen_graph = convert_variables_to_constants(session, input_graph_def, output_names, freeze_var_names)
-        make_cv2_compatible(frozen_graph)
+        frozen_graph = convert_variables_to_constants(session, input_graph_def,
+                                                      output_names, freeze_var_names)
         return frozen_graph
 
-
-def save_frozen_protobuf(save_path, session, keep_var_names=None, output_names=None, clear_devices=True):
-    if isinstance(save_path, str):
-        save_path = Path(save_path)
-    K.set_learning_phase(0)
-    K.set_image_data_format('channels_last')
-    frozen_graph = freeze_session(session, keep_var_names=keep_var_names,
-                                  output_names=output_names, clear_devices=clear_devices)
-    tf.train.write_graph(frozen_graph, str(save_path.parent), str(save_path.name), as_text=False)
 
 
 def save_frozen_protobuf2(save_path, session, output_names=None, clear_devices=True):
@@ -107,204 +199,3 @@ def save_frozen_protobuf2(save_path, session, output_names=None, clear_devices=T
                               "save/Const:0",
                               str(save_path)[:-3] + '_frozen.pb',
                               clear_devices, "")
-
-
-# Code below is alternative method which might work better if multiple outputs
-
-# From https://github.com/amir-abdi/keras_to_tensorflow
-def keras_to_tensorflow(num_output=1, quantize=False, input_fld=".", output_fld=".",
-                        input_model_file='final_model.hdf5', output_model_file="", output_node_prefix="output_node"):
-    """
-    Input arguments:
-
-    num_output: this value has nothing to do with the number of classes, batch_size, etc.,
-    and it is mostly equal to 1. If the network is a **multi-stream network**
-    (forked network with multiple outputs), set the value to the number of outputs.
-
-    quantize: if set to True, use the quantize feature of Tensorflow
-    (https://www.tensorflow.org/performance/quantization) [default: False]
-
-    input_fld: directory holding the keras weights file [default: .]
-
-    output_fld: destination directory to save the tensorflow files [default: .]
-
-    input_model_file: name of the input weight file [default: 'model.h5']
-
-    output_model_file: name of the output weight file [default: args.input_model_file + '.pb']
-
-    output_node_prefix: the prefix to use for output nodes. [default: output_node]
-
-    """
-
-    # initialize
-    from keras.models import load_model
-    import tensorflow as tf
-    from pathlib import Path
-    from keras import backend as K
-
-    output_fld = input_fld if output_fld == '' else output_fld
-    if output_model_file == '':
-        output_model_file = str(Path(input_model_file).name) + '.pb'
-    Path(output_fld).mkdir(parents=True, exist_ok=True)
-    weight_file_path = str(Path(input_fld) / input_model_file)
-
-    K.set_learning_phase(0)
-    K.set_image_data_format('channels_last')
-
-    # Load keras model and rename output
-    try:
-        net_model = load_model(weight_file_path)
-    except ValueError as err:
-        print('''Input file specified ({}) only holds the weights, and not the model definition.
-        Save the model using mode.save(filename.h5) which will contain the network architecture
-        as well as its weights. 
-        If the model is saved using model.save_weights(filename.h5), the model architecture is 
-        expected to be saved separately in a json format and loaded prior to loading the weights.
-        Check the keras documentation for more details (https://keras.io/getting-started/faq/)'''
-              .format(weight_file_path))
-        raise err
-    pred = [None] * num_output
-    pred_node_names = [None] * num_output
-    for i in range(num_output):
-        pred_node_names[i] = output_node_prefix + str(i)
-        pred[i] = tf.identity(net_model.outputs[i], name=pred_node_names[i])
-    print('output nodes names are: ', pred_node_names)
-
-    sess = K.get_session()
-
-    # convert variables to constants and save
-    from tensorflow.python.framework import graph_util
-    from tensorflow.python.framework import graph_io
-    if quantize:
-        from tensorflow.tools.graph_transforms import TransformGraph
-        transforms = ["quantize_weights", "quantize_nodes"]
-        transformed_graph_def = TransformGraph(sess.graph.as_graph_def(), [], pred_node_names, transforms)
-        constant_graph = graph_util.convert_variables_to_constants(sess, transformed_graph_def, pred_node_names)
-    else:
-        constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
-    graph_io.write_graph(constant_graph, output_fld, output_model_file, as_text=False)
-    print('saved the freezed graph (ready for inference) at: ', str(Path(output_fld) / output_model_file))
-
-# -------------------------------------------------------------------------------------------------------------------- #
-# from https://stackoverflow.com/questions/49794023/use-keras-model-with-flatten-layer-inside-opencv-3/49817506#49817506
-import tensorflow as tf
-from tensorflow.core import framework
-
-
-def find_all_nodes(graph_def, **kwargs):
-    for node in graph_def.node:
-        for key, value in kwargs.items():
-            if getattr(node, key) != value:
-                break
-        else:
-            yield node
-    raise StopIteration
-
-
-def find_node(graph_def, **kwargs):
-    try:
-        return next(find_all_nodes(graph_def, **kwargs))
-    except StopIteration:
-        raise ValueError(
-            'no node with attributes: {}'.format(
-                ', '.join("'{}': {}".format(k, v) for k, v in kwargs.items())))
-
-
-def walk_node_ancestors(graph_def, node_def, exclude=set()):
-    openlist = list(node_def.input)
-    closelist = set()
-    while openlist:
-        name = openlist.pop()
-        if name not in exclude:
-            node = find_node(graph_def, name=name)
-            openlist += list(node.input)
-            closelist.add(name)
-    return closelist
-
-
-def remove_nodes_by_name(graph_def, node_names):
-    for i in reversed(range(len(graph_def.node))):
-        if graph_def.node[i].name in node_names:
-            del graph_def.node[i]
-
-
-def make_shape_node_const(node_def, tensor_values):
-    node_def.op = 'Const'
-    node_def.ClearField('input')
-    node_def.attr.clear()
-    node_def.attr['dtype'].type = framework.types_pb2.DT_INT32
-    tensor = node_def.attr['value'].tensor
-    tensor.dtype = framework.types_pb2.DT_INT32
-    tensor.tensor_shape.dim.add()
-    tensor.tensor_shape.dim[0].size = len(tensor_values)
-    for value in tensor_values:
-        tensor.tensor_content += value.to_bytes(4, 'little')
-    output_shape = node_def.attr['_output_shapes']
-    output_shape.list.shape.add()
-    output_shape.list.shape[0].dim.add()
-    output_shape.list.shape[0].dim[0].size = len(tensor_values)
-
-
-def make_cv2_compatible(graph_def):
-    # A reshape node needs a shape node as its second input to know how it
-    # should reshape its input tensor.
-    # When exporting a model using Keras, this shape node is computed
-    # dynamically using `Shape`, `StridedSlice` and `Pack` operators.
-    # Unfortunately those operators are not supported yet by the OpenCV API.
-    # The goal here is to remove all those unsupported nodes and hard-code the
-    # shape layer as a const tensor instead.
-    for reshape_node in find_all_nodes(graph_def, op='Reshape'):
-
-        # Get a reference to the shape node
-        shape_node = find_node(graph_def, name=reshape_node.input[1])
-
-        # Find and remove all unsupported nodes
-        garbage_nodes = walk_node_ancestors(graph_def, shape_node,
-                                            exclude=[reshape_node.input[0]])
-        remove_nodes_by_name(graph_def, garbage_nodes)
-
-        # Infer the shape tensor from the reshape output tensor shape
-        if not '_output_shapes' in reshape_node.attr:
-            raise AttributeError(
-                'cannot infer the shape node value from the reshape node. '
-                'Please set the `add_shapes` argument to `True` when calling '
-                'the `Session.graph.as_graph_def` method.')
-        output_shape = reshape_node.attr['_output_shapes'].list.shape[0]
-        output_shape = [dim.size for dim in output_shape.dim]
-
-        # Hard-code the inferred shape in the shape node
-        make_shape_node_const(shape_node, output_shape[1:])
-
-# -------------------------------------------------------------------------------------------------------------------- #
-
-if __name__ == "__main__":
-
-    import argparse
-
-    parser = argparse.ArgumentParser(description='set input arguments')
-    parser.add_argument('-input_fld', action="store",
-                        dest='input_fld', type=str, default='.')
-    parser.add_argument('-output_fld', action="store",
-                        dest='output_fld', type=str, default='')
-    parser.add_argument('-input_model_file', action="store",
-                        dest='input_model_file', type=str, default='model.h5')
-    parser.add_argument('-output_model_file', action="store",
-                        dest='output_model_file', type=str, default='')
-    parser.add_argument('-num_outputs', action="store",
-                        dest='num_outputs', type=int, default=1)
-    parser.add_argument('-output_node_prefix', action="store",
-                        dest='output_node_prefix', type=str, default='output_node')
-    parser.add_argument('-quantize', action="store",
-                        dest='quantize', type=bool, default=False)
-    parser.add_argument('-f')
-    args = parser.parse_args()
-    parser.print_help()
-    print('input args: ', args)
-
-    keras_to_tensorflow(num_output=args.num_outputs,
-                        quantize=args.quantize,
-                        input_fld=args.input_fld,
-                        output_fld=args.output_fld,
-                        input_model_file=args.output_model_file,
-                        output_model_file=args.output_model_file,
-                        output_node_prefix=args.output_node_prefix)
