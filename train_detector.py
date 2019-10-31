@@ -5,10 +5,9 @@ from dl_tools.data_loader import data_generator
 from dl_tools.utils.read_config import process_config
 from dl_tools.utils.freeze_tools import finalize_for_ocv
 from dl_tools.utils.tensorboardtools import tensorboard_launch
-from keras.optimizers import Adam
-from keras.models import load_model
-from keras.callbacks import TensorBoard, ReduceLROnPlateau
-import keras.backend as K
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
+from tensorflow.keras.callbacks import TensorBoard, ReduceLROnPlateau
 
 
 def train():
@@ -16,14 +15,15 @@ def train():
     config = process_config(Path(__file__).parent / 'config.json')
 
     # load data
-    data_gen, validation_data, scale_factor_wb = data_generator.get_data(config)
+    data_gen, validation_data, scale_factor_wb = data_generator.get_data_for_detection(config)
 
     # load model or create new
     if config.load_model:
         center_of_mass = CenterOfMass([s // 4 for s in config.input_shape[:2]], (4, 4))
         custom_objects = {'center_of_mass': center_of_mass}
         model = load_model(str(config.load_model), custom_objects=custom_objects)
-        K.set_value(model.optimizer.lr, config.learning_rate)
+        if config.learning_rate:
+            model.optimizer.lr = config.learning_rate
     else:
         # initialize the optimizer and model
         opt = Adam(lr=config.learning_rate)

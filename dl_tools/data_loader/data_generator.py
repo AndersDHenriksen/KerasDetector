@@ -1,15 +1,43 @@
 import numpy as np
 from pathlib import Path
-from keras.utils import Sequence
-from keras.preprocessing.image import ImageDataGenerator  # Currently not used
+from tensorflow.keras.utils import Sequence
+from tensorflow.keras.preprocessing.image import ImageDataGenerator  # Currently not used
 import h5py
 from dl_tools.io import HDF5DatasetWriter
+from dl_tools.utils.file_tools import partition_dataset
 from operator import itemgetter
 ocv_present = True
 try:
     import cv2
 except ImportError:
     ocv_present = False
+
+
+def get_data_for_classification(config, split_data_files=True):
+    target_size = config.input_shape[:2]
+    if split_data_files:
+        # Move to train / test directory
+        partition_dataset(config.data_folder, 1 - config.test_split_ratio, 0, config.test_split_ratio, True)
+        config.data_folder_train = str(config.data_folder / 'Train')
+        config.data_folder_test = str(config.data_folder / 'Test')
+
+        # Load data generators
+        aug_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4,
+                                     rotation_range=360, vertical_flip=True, horizontal_flip=True)
+        rescale_gen = ImageDataGenerator(rescale=1. / 255)
+        train_gen = aug_gen.flow_from_directory(config.data_folder_train, batch_size=config.batch_size,
+                                                class_mode='binary', target_size=target_size)
+        validation_gen = rescale_gen.flow_from_directory(config.data_folder_test, batch_size=config.batch_size,
+                                                         class_mode='binary', target_size=target_size)
+    else:
+        # Load data generators
+        data_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4, rotation_range=360,
+                                      vertical_flip=True, horizontal_flip=True, validation_split=0.15)
+        train_gen = data_gen.flow_from_directory(config.data_folder, batch_size=config.batch_size,
+                                                 class_mode='binary', subset='training', target_size=target_size)
+        validation_gen = data_gen.flow_from_directory(config.data_folder, batch_size=config.batch_size,
+                                                      class_mode='binary', subset='validation', target_size=target_size)
+    return train_gen, validation_gen
 
 
 def train_test_split(X, y, test_split_ratio, random_state=0):
@@ -63,7 +91,7 @@ class GolfSequence(Sequence):
         return X, y
 
 
-def get_data(config):
+def get_data_for_detection(config):
 
     print('Loading data ... ', end='', flush=True)
     split_test_data_from_train_data = False

@@ -1,7 +1,5 @@
 # import the necessary packages
-from keras.layers.core import Dropout
-from keras.layers.core import Flatten
-from keras.layers.core import Dense
+from tensorflow.keras.layers import Dense, Dropout, Flatten
 
 class FCHeadNet:
 	@staticmethod

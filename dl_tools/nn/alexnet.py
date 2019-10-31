@@ -1,14 +1,8 @@
 # import the necessary packages
-from keras.models import Sequential
-from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
-from keras.layers.core import Activation
-from keras.layers.core import Flatten
-from keras.layers.core import Dropout
-from keras.layers.core import Dense
-from keras.regularizers import l2
-from keras import backend as K
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D, Dense, Dropout, Flatten, MaxPooling2D
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras import backend as K
 
 class AlexNet:
 	@staticmethod

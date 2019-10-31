@@ -1,11 +1,7 @@
 # import the necessary packages
-from keras.models import Sequential
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
-from keras.layers.core import Activation
-from keras.layers.core import Flatten
-from keras.layers.core import Dense
-from keras import backend as K
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Activation, Conv2D, Dense, Flatten, MaxPooling2D
+from tensorflow.keras import backend as K
 
 class LeNet:
 	@staticmethod

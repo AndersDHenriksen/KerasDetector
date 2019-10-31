@@ -1,9 +1,9 @@
+import os
 import json
 from munch import Munch
 from pathlib import Path
 from datetime import datetime
-import os
-from distutils.dir_util import copy_tree
+from shutil import copytree, ignore_patterns
 
 copy_code_to_model_dir = True
 
@@ -43,6 +43,7 @@ def process_config(json_file):
         config.exp_name = "{} - {}_run{}".format(datetime.now().strftime('%Y-%m-%d %H-%M-%S'), config.exp_name, run_n)
         config.model_epoch = 0
 
+    config.data_folder = Path(config.data_folder)
     config.log_dir = str(experiment_folder / config.exp_name / "log") + os.sep
     config.checkpoint_dir = str(experiment_folder / config.exp_name / "checkpoint") + os.sep
 
@@ -50,6 +51,7 @@ def process_config(json_file):
 
     if copy_code_to_model_dir:
         code_dir = str(experiment_folder / config.exp_name / "code") + os.sep
-        _ = copy_tree(src=__file__[:__file__.find('dl_tools')], dst=code_dir, update=1, verbose=0)
+        copytree(src=__file__[:__file__.find('dl_tools')], dst=code_dir, ignore=ignore_patterns('__pycache__', '.*'),
+                 dirs_exist_ok=True)
 
     return config
