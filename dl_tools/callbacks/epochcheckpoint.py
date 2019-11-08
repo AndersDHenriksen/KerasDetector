@@ -22,6 +22,7 @@ class EpochCheckpoint(Callback):
         # increment the internal epoch counter and get current validation loss
         epoch += 1
         current_val_loss = (logs and logs.get('val_loss')) or 1e31
+        logs.update({'lr': self.model.optimizer.lr.numpy()})  # Add Learning Rate to tensorboard
 
         # check to see if the model has been validation loss and should be serialized to disk
         if self.save_best and current_val_loss < self.best_val_loss:
