@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 from tensorflow.keras.utils import Sequence
-from tensorflow.keras.preprocessing.image import ImageDataGenerator  # Currently not used
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import h5py
 from dl_tools.io import HDF5DatasetWriter
 from dl_tools.utils.file_tools import partition_dataset
@@ -74,7 +74,7 @@ def height_width_shift_random(X, y, width_range=2, height_range=2):
     y -= np.array([width_shift - width_range, height_shift - height_range]).T
 
 
-class GolfSequence(Sequence):
+class DataSequence(Sequence):
 
     def __init__(self, X_train, y_train, batch_size, num_iter_per_epoch=None):
         self.X_train, self.y_train = X_train, y_train

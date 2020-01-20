@@ -31,6 +31,10 @@ def partition_dataset(dataset_path, train_split=0.7, validation_split=0.15, test
     for paths, name in zip(partition_paths, new_folders[1:]):
         for file_path in paths:
             dst = Path(file_path.as_posix().replace('/All/', f'/{name}/'))
-            dst.mkdir(exist_ok=True, parents=True)
+            dst.parent.mkdir(exist_ok=True, parents=True)
             copy2(str(file_path), str(dst))
     print('Done')
+
+
+if __name__ == "__main__":
+    partition_dataset(r"D:\2805 RMED Pre-project Droplet Detection Deep Learning\_Cutout", train_split=0.5, validation_split=0, test_split=.5)
