@@ -17,7 +17,8 @@ def get_data_for_classification(config, split_data_files=True):
     target_size = config.input_shape[:2]
     if split_data_files:
         # Move to train / test directory
-        partition_dataset(config.data_folder, 1 - config.test_split_ratio, 0, config.test_split_ratio, True)
+        if not (config.data_folder / 'Train').exists():
+            partition_dataset(config.data_folder, 1 - config.test_split_ratio, 0, config.test_split_ratio, True)
         config.data_folder_train = str(config.data_folder / 'Train')
         config.data_folder_test = str(config.data_folder / 'Test')
 
