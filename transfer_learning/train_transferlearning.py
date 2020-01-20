@@ -24,9 +24,9 @@ def train(model=None, config=None):
         if learning_rate:
             model.optimizer.lr = learning_rate
     elif model is None:
-        model = MobileNet2.build(config, classes=1)
+        model = MobileNet2.build(config, classes=4)
         opt = Adam(lr=config.learning_rate_warmup)
-        model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     training_epoch = config.training_epochs_warmup + (1 - model.is_in_warmup) * config.training_epochs
     model.summary()
 
@@ -52,7 +52,8 @@ def train(model=None, config=None):
         callbacks=callbacks,
         validation_data=validation_gen,
         validation_steps=validation_gen.samples // config.batch_size,
-        initial_epoch=config.model_epoch)
+        initial_epoch=config.model_epoch,
+        class_weight={0: 1, 1: 1, 2: 1, 3: 1/30})
 
     if not model.is_in_warmup:
         confusion_matrix(config, model, validation_gen)
@@ -63,7 +64,7 @@ def train(model=None, config=None):
     # After warm-up prepare to do fine tuning
     for layer in model.layers:
         layer.trainable = True
-    model.compile(loss='binary_crossentropy', optimizer=Adam(lr=config.learning_rate), metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=config.learning_rate), metrics=['accuracy'])
     model.is_in_warmup = False
     config.model_epoch = config.training_epochs_warmup
     train(model, config)

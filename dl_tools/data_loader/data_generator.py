@@ -23,21 +23,20 @@ def get_data_for_classification(config, split_data_files=True):
 
         # Load data generators
         aug_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4,
-                                     rotation_range=360, vertical_flip=True, horizontal_flip=True,
-                                     brightness_range=[0.95, 1.05], zoom_range=0.05)
+                                     brightness_range=[0.95, 1.05])  # zoom_range=0.05
         rescale_gen = ImageDataGenerator(rescale=1. / 255)
         train_gen = aug_gen.flow_from_directory(config.data_folder_train, batch_size=config.batch_size,
-                                                class_mode='binary', target_size=target_size)
+                                                class_mode='categorical', target_size=target_size)
         validation_gen = rescale_gen.flow_from_directory(config.data_folder_test, batch_size=config.batch_size,
-                                                         class_mode='binary', target_size=target_size)
+                                                         class_mode='categorical', target_size=target_size)
     else:
         # Load data generators
         data_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4, rotation_range=360,
                                       vertical_flip=True, horizontal_flip=True, validation_split=0.15)
         train_gen = data_gen.flow_from_directory(config.data_folder, batch_size=config.batch_size,
-                                                 class_mode='binary', subset='training', target_size=target_size)
+                                                 class_mode='categorical', subset='training', target_size=target_size)
         validation_gen = data_gen.flow_from_directory(config.data_folder, batch_size=config.batch_size,
-                                                      class_mode='binary', subset='validation', target_size=target_size)
+                                                      class_mode='categorical', subset='validation', target_size=target_size)
     return train_gen, validation_gen
 
 
