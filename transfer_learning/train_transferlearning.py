@@ -52,8 +52,7 @@ def train(model=None, config=None):
         callbacks=callbacks,
         validation_data=validation_gen,
         validation_steps=validation_gen.samples // config.batch_size,
-        initial_epoch=config.model_epoch,
-        class_weight={0: 1, 1: 1, 2: 1, 3: 1/30})
+        initial_epoch=config.model_epoch)
 
     if not model.is_in_warmup:
         confusion_matrix(config, model, validation_gen)

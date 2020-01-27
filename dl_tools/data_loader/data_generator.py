@@ -30,6 +30,8 @@ def get_data_for_classification(config, split_data_files=True):
                                                 class_mode='categorical', target_size=target_size)
         validation_gen = rescale_gen.flow_from_directory(config.data_folder_test, batch_size=config.batch_size,
                                                          class_mode='categorical', target_size=target_size)
+        oversample_image_generator(train_gen)
+        oversample_image_generator(validation_gen)
     else:
         # Load data generators
         data_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4, rotation_range=360,

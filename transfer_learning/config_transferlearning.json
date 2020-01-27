@@ -1,7 +1,7 @@
 {
-  "exp_name": "MobileNet_transferlearning",
-  "training_epochs_warmup": 50,
-  "training_epochs": 501,
+  "exp_name": "MobileNet_Oversampling",
+  "training_epochs_warmup": 10,
+  "training_epochs": 101,
   "batch_size": 8,
   "input_shape": [224, 224, 3],
   "test_split_ratio": 0.5,
