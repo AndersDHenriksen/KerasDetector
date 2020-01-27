@@ -41,6 +41,25 @@ def get_data_for_classification(config, split_data_files=True):
     return train_gen, validation_gen
 
 
+def oversample_image_generator(image_generator, n_samples=None):
+    current_classes = image_generator.classes
+    current_filepaths = np.array(image_generator.filepaths)
+    class_count = np.bincount(current_classes)
+    n_samples = n_samples or class_count.max()
+    new_classes, new_filepaths = [], []
+    for class_idx in range(class_count.size):
+        n_add = n_samples - class_count[class_idx]
+        if n_add <= 0:
+            continue
+        new_classes += n_add * [class_idx]
+        n_repeats = n_add // class_count[class_idx] + 1
+        new_filepaths += np.tile(current_filepaths[current_classes == class_idx], n_repeats)[:n_add].tolist()
+    image_generator.classes = np.concatenate((current_classes, new_classes))
+    image_generator._filepaths += new_filepaths
+    image_generator.n = image_generator.samples = image_generator.classes.size
+    image_generator._set_index_array()
+
+
 def train_test_split(X, y, test_split_ratio, random_state=0):
     # Could also be done by sklearn
     rng = np.random.RandomState(random_state)
