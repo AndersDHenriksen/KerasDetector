@@ -1,8 +1,8 @@
-from pathlib import Path
-from keras import backend as K
-from keras.models import load_model
-import tensorflow as tf
 import os
+from pathlib import Path
+import tensorflow as tf
+import tensorflow.keras.backend as K
+from tensorflow.keras.models import load_model
 
 
 def finalize_for_ocv(model_path):
@@ -17,7 +17,7 @@ def finalize_for_ocv(model_path):
 
 def augment_for_ocv(model):
     from kerassurgeon import Surgeon  # pip install kerassurgeon
-    from keras.layers import Reshape
+    from tensorflow.keras.layers import Reshape
 
     surgeon = Surgeon(model)
     for layer in model.layers:

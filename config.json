@@ -1,14 +1,12 @@
 {
-  "exp_name": "conv_reduce",
-  "training_epochs": 4000,
-  "num_iter_per_epoch": 400,
-  "batch_size": 16,
-  "input_shape": [240, 320, 4],
-  "test_split_ratio": 0.1,
-  "learning_rate": 0.000010,
+  "exp_name": "MediumNet",
+  "training_epochs": 200,
+  "batch_size": 8,
+  "input_shape": [224, 224, 3],
+  "test_split_ratio": 0.5,
+  "learning_rate": 0.0001,
   "use_learning_rate_decay": false,
-  "do_evaluate": false,
-  "save_final_model": true,
-  "experiment_folder": "/home/ahe/TensorFlow/experiments/GolfHosel",
-  "hdf5_path": ""
+  "save_final_model": false,
+  "data_folder": "D:/2805 RMED Pre-project Droplet Detection Deep Learning/_Cutout",
+  "experiment_folder": "/NN/Experiments/DropletDetection"
 }
