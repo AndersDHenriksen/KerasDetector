@@ -54,7 +54,7 @@ def train():
         initial_epoch=config.model_epoch)
 
     confusion_matrix(config, model, validation_gen)
-    print('Fine tuning done. Now take the best model and pass it through freeze_tools.finalize_for_ocv')
+    print('Training done. Now take the best model and pass it through freeze_tools.finalize_for_ocv')
 
     if config.save_final_model:
         save_model_path = config.checkpoint_dir + "final_model.hdf5"
