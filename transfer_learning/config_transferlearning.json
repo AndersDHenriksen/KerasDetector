@@ -2,7 +2,7 @@
   "exp_name": "MobileNet_transferlearning",
   "training_epochs_warmup": 50,
   "training_epochs": 501,
-  "batch_size": 8,
+  "batch_size": 16,
   "input_shape": [224, 224, 3],
   "test_split_ratio": 0.3,
   "learning_rate_warmup": 0.0010,
@@ -10,6 +10,6 @@
   "use_learning_rate_decay": true,
   "do_evaluate": false,
   "save_final_model": false,
-  "data_folder": "/NN/Data/Chambers",
-  "experiment_folder": "/NN/Experiments/Chambers"
+  "data_folder": "/media/anders/-Anders-5-/BluSense4/NN/Data",
+  "experiment_folder": "/media/anders/-Anders-5-/BluSense4/NN/Experiments"
 }

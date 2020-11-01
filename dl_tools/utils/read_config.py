@@ -51,7 +51,6 @@ def process_config(json_file):
 
     if copy_code_to_model_dir:
         code_dir = str(experiment_folder / config.exp_name / "code") + os.sep
-        copytree(src=__file__[:__file__.find('dl_tools')], dst=code_dir, ignore=ignore_patterns('__pycache__', '.*'),
-                 dirs_exist_ok=True)
+        copytree(src=__file__[:__file__.find('dl_tools')], dst=code_dir, ignore=ignore_patterns('__pycache__', '.*'))
 
     return config
