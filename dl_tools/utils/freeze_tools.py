@@ -5,6 +5,25 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.models import load_model
 
 
+def finalize_for_ocv_tf2(model_path):
+    from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+
+    tf_model_path = str(Path(model_path).parent / 'tf_model')
+    cv_model_path = str(Path(model_path).parent / 'frozen_graph.pb')
+    model = load_model(model_path)
+    # Convert tf format
+    model.save(tf_model_path, save_format='tf')
+    loaded = tf.saved_model.load(tf_model_path)
+    # Convert to function then graph
+    infer = loaded.signatures['serving_default']
+    f = tf.function(infer).get_concrete_function(input_1=tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype))
+    f2 = convert_variables_to_constants_v2(f)
+    graph_def = f2.graph.as_graph_def()
+    # Export frozen graph
+    with tf.io.gfile.GFile(cv_model_path, 'wb') as f:
+        f.write(graph_def.SerializeToString())
+
+
 def finalize_for_ocv(model_path):
     K.set_learning_phase(0)
 

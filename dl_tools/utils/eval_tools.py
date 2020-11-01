@@ -4,7 +4,7 @@ import tensorflow as tf
 def confusion_matrix(config, model, validation_gen, do_print=True):
     confusion_gen = validation_gen.image_data_generator.flow_from_directory(config.data_folder_test, shuffle=False,
         batch_size=config.batch_size, class_mode=validation_gen.class_mode, target_size=config.input_shape[:2])
-    val_pred = model.predict_generator(confusion_gen, confusion_gen.samples // config.batch_size + 1)
+    val_pred = model.predict(confusion_gen, confusion_gen.samples // config.batch_size + 1)
     if validation_gen.class_mode == 'binary':
         val_pred = val_pred > .5
     else:

@@ -44,8 +44,8 @@ def train(model=None, config=None):
     tensorboard_launch(config.experiment_folder)
 
     # train the network
-    H = model.fit_generator(
-        generator=train_gen,
+    H = model.fit(
+        x=train_gen,
         steps_per_epoch=train_gen.samples // config.batch_size,
         epochs=training_epoch,
         verbose=1,
