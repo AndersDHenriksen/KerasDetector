@@ -62,5 +62,5 @@ def save_overlayed_masks(images, masks, filenames, color=None):
 
 
 def save_overlay_images(model, X_test, color=None):
-    Y_pred = model.predict(X_test)
-    save_overlayed_masks(X_test, Y_pred, [f"overlay{i:03}.png" for i in range(Y_pred.shape[0])], color)
+    Y_pred = (model.predict(x[None, ...])[0] for x in X_test)
+    save_overlayed_masks(X_test, Y_pred, [f"overlay{i:03}.png" for i in range(X_test.shape[0])], color)

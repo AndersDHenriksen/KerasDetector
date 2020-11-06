@@ -18,12 +18,12 @@ def sigmoid_iou_loss(y_true, y_pred):
     return 1 - K.sum(K.minimum(y_true, y_pred)) / K.sum(K.maximum(y_true, y_pred))
 
 
-if os.getlogin() == 'ahe':
-    print('Disabling GPU! Computations will be done on CPU.')
-    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Disable GPU
-
 # read config JSON file
 config = process_config(Path(__file__).parent / 'config.json')
+
+if config.disable_gpu:
+    print('Disabling GPU! Computations will be done on CPU.')
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # load data
 preprocess_input = None  # sm.get_preprocessing('resnet18')
@@ -62,7 +62,7 @@ tensorboard_launch(config.experiment_folder)
 # train the network
 H = model.fit(
     x=zip(X_train_gen, Y_train_gen),
-    steps_per_epoch=100 // config.batch_size,
+    steps_per_epoch=X_train_gen.n // config.batch_size,
     epochs=config.training_epochs,
     verbose=1,
     callbacks=callbacks,
