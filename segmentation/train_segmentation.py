@@ -36,7 +36,7 @@ else:
     model = custom_unet(input_shape=config.input_shape, use_batch_norm=True, num_classes=1,
                         filters=4, dropout=0.2, output_activation='sigmoid')
     # model = sm.Unet('resnet18', input_shape=config.input_shape, classes=1, activation='sigmoid',
-    #                 decoder_filters=(256, 128, 64, 32, 16), encoder_freeze=False)
+    #                 decoder_filters=(256, 128, 64, 32, 16), encoder_freeze=False, encoder_weights='imagenet')
 opt = Adam(lr=config.learning_rate)
 model.compile(opt, sm.losses.bce_jaccard_loss, metrics=['mean_squared_error', sm.metrics.iou_score,
                                                         sm.losses.bce_jaccard_loss, sigmoid_iou_loss])
