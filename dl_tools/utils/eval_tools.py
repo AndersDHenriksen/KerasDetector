@@ -18,7 +18,7 @@ def confusion_matrix(config, model, validation_gen, do_print=True):
 
 
 def compute_confusion_matrix(true, pred):
-    cm = np.zeros((true.max() + 1, true.max() + 1))
+    cm = np.zeros((true.max() + 1, true.max() + 1), np.int)
     for t, p in zip(true, pred):
         cm[t][p] += 1
     return cm
