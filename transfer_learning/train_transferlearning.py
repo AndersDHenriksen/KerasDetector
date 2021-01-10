@@ -10,6 +10,7 @@ from dl_tools.data_loader.data_generator import get_data_for_classification
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import TensorBoard, ReduceLROnPlateau
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 
 def train(model=None, config=None):
@@ -30,7 +31,7 @@ def train(model=None, config=None):
     training_epoch = config.training_epochs_warmup + (1 - model.is_in_warmup) * config.training_epochs
     model.summary()
 
-    train_gen, validation_gen = get_data_for_classification(config)
+    train_gen, validation_gen = get_data_for_classification(config, preprocess_input)
 
     # Define callbacks. Learning rate decrease, tensorboard etc.
     model_checkpoint = EpochCheckpoint(config.checkpoint_dir, best_limit=0.3)
@@ -46,12 +47,12 @@ def train(model=None, config=None):
     # train the network
     H = model.fit_generator(
         generator=train_gen,
-        steps_per_epoch=train_gen.samples // config.batch_size,
+        steps_per_epoch=train_gen.samples // config.batch_size + 1,
         epochs=training_epoch,
         verbose=1,
         callbacks=callbacks,
         validation_data=validation_gen,
-        validation_steps=validation_gen.samples // config.batch_size,
+        validation_steps=validation_gen.samples // config.batch_size + 1,
         initial_epoch=config.model_epoch)
 
     if not model.is_in_warmup:

@@ -1,4 +1,4 @@
-import tensorflow as tf
+import numpy as np
 
 
 def confusion_matrix(config, model, validation_gen, do_print=True):
@@ -8,10 +8,17 @@ def confusion_matrix(config, model, validation_gen, do_print=True):
     if validation_gen.class_mode == 'binary':
         val_pred = val_pred > .5
     else:
-        val_pred = tf.math.argmax(val_pred, axis=1)
-    confusion_matrix = tf.math.confusion_matrix(confusion_gen.classes, val_pred)
+        val_pred = np.argmax(val_pred, axis=1)
+    confusion_matrix = compute_confusion_matrix(confusion_gen.classes, val_pred)
     if do_print:
         print(f'Confusion matrix:')
         for label, cm_row in zip(confusion_gen.class_indices.keys(), confusion_matrix):
             print(f'{label}: {cm_row}')
     return confusion_matrix
+
+
+def compute_confusion_matrix(true, pred):
+    cm = np.zeros((true.max() + 1, true.max() + 1))
+    for t, p in zip(true, pred):
+        cm[t][p] += 1
+    return cm
