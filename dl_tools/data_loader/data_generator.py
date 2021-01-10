@@ -16,7 +16,7 @@ except ImportError:
 def get_data_for_classification(config, preprocess_input=None, split_data_files=True):
     target_size = config.input_shape[:2]
     if preprocess_input is None:
-        preprocess_input = lambda x: x / 255.0
+        preprocess_input = lambda x: x / 127.5 - 1.0
 
     if split_data_files:
         # Move to train / test directory

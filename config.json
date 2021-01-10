@@ -1,12 +1,12 @@
 {
   "exp_name": "MediumNet",
-  "training_epochs": 200,
-  "batch_size": 8,
+  "training_epochs": 1000,
+  "batch_size": 16,
   "input_shape": [224, 224, 3],
-  "test_split_ratio": 0.5,
-  "learning_rate": 0.0001,
+  "test_split_ratio": 0.3,
+  "learning_rate": 0.00001,
   "use_learning_rate_decay": false,
   "save_final_model": false,
-  "data_folder": "D:/2805 RMED Pre-project Droplet Detection Deep Learning/_Cutout",
-  "experiment_folder": "/NN/Experiments/DropletDetection"
+  "data_folder": "/media/anders/-Anders-5-/BluSense4/NN/Data",
+  "experiment_folder": "/media/anders/-Anders-5-/BluSense4/NN/Experiments"
 }
