@@ -10,6 +10,7 @@ from dl_tools.data_loader.data_generator import get_data_for_classification
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import TensorBoard, ReduceLROnPlateau
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 
 def train(model=None, config=None):
@@ -24,13 +25,13 @@ def train(model=None, config=None):
         if learning_rate:
             model.optimizer.lr = learning_rate
     elif model is None:
-        model = MobileNet2.build(config, classes=1)
+        model = MobileNet2.build(config, classes=3)
         opt = Adam(lr=config.learning_rate_warmup)
-        model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     training_epoch = config.training_epochs_warmup + (1 - model.is_in_warmup) * config.training_epochs
     model.summary()
 
-    train_gen, validation_gen = get_data_for_classification(config)
+    train_gen, validation_gen = get_data_for_classification(config, preprocess_input)
 
     # Define callbacks. Learning rate decrease, tensorboard etc.
     model_checkpoint = EpochCheckpoint(config.checkpoint_dir, best_limit=0.3)
@@ -46,12 +47,12 @@ def train(model=None, config=None):
     # train the network
     H = model.fit(
         x=train_gen,
-        steps_per_epoch=train_gen.samples // config.batch_size,
+        steps_per_epoch=train_gen.samples // config.batch_size + 1,
         epochs=training_epoch,
         verbose=1,
         callbacks=callbacks,
         validation_data=validation_gen,
-        validation_steps=validation_gen.samples // config.batch_size,
+        validation_steps=validation_gen.samples // config.batch_size + 1,
         initial_epoch=config.model_epoch)
 
     if not model.is_in_warmup:
@@ -63,7 +64,7 @@ def train(model=None, config=None):
     # After warm-up prepare to do fine tuning
     for layer in model.layers:
         layer.trainable = True
-    model.compile(loss='binary_crossentropy', optimizer=Adam(lr=config.learning_rate), metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=config.learning_rate), metrics=['accuracy'])
     model.is_in_warmup = False
     config.model_epoch = config.training_epochs_warmup
     train(model, config)

@@ -13,8 +13,11 @@ except ImportError:
     ocv_present = False
 
 
-def get_data_for_classification(config, split_data_files=True):
+def get_data_for_classification(config, preprocess_input=None, split_data_files=True):
     target_size = config.input_shape[:2]
+    if preprocess_input is None:
+        preprocess_input = lambda x: x / 127.5 - 1.0
+
     if split_data_files:
         # Move to train / test directory
         partition_dataset(config.data_folder, 1 - config.test_split_ratio, 0, config.test_split_ratio, True)
@@ -22,22 +25,22 @@ def get_data_for_classification(config, split_data_files=True):
         config.data_folder_test = str(config.data_folder / 'Test')
 
         # Load data generators
-        aug_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4,
+        aug_gen = ImageDataGenerator(preprocessing_function=preprocess_input, width_shift_range=4, height_shift_range=4,
                                      rotation_range=360, vertical_flip=True, horizontal_flip=True,
                                      brightness_range=[0.95, 1.05], zoom_range=0.05)
-        rescale_gen = ImageDataGenerator(rescale=1. / 255)
+        rescale_gen = ImageDataGenerator(preprocessing_function=preprocess_input)
         train_gen = aug_gen.flow_from_directory(config.data_folder_train, batch_size=config.batch_size,
-                                                class_mode='binary', target_size=target_size)
+                                                class_mode='categorical', target_size=target_size)
         validation_gen = rescale_gen.flow_from_directory(config.data_folder_test, batch_size=config.batch_size,
-                                                         class_mode='binary', target_size=target_size)
+                                                         class_mode='categorical', target_size=target_size)
     else:
         # Load data generators
-        data_gen = ImageDataGenerator(rescale=1. / 255, width_shift_range=4, height_shift_range=4, rotation_range=360,
-                                      vertical_flip=True, horizontal_flip=True, validation_split=0.15)
+        data_gen = ImageDataGenerator(preprocessing_function=preprocess_input, width_shift_range=4, height_shift_range=4,
+                                      rotation_range=360, vertical_flip=True, horizontal_flip=True, validation_split=0.15)
         train_gen = data_gen.flow_from_directory(config.data_folder, batch_size=config.batch_size,
-                                                 class_mode='binary', subset='training', target_size=target_size)
+                                                 class_mode='categorical', subset='training', target_size=target_size)
         validation_gen = data_gen.flow_from_directory(config.data_folder, batch_size=config.batch_size,
-                                                      class_mode='binary', subset='validation', target_size=target_size)
+                                                      class_mode='categorical', subset='validation', target_size=target_size)
     return train_gen, validation_gen
 
 
