@@ -62,7 +62,6 @@ tensorboard_launch(config.experiment_folder)
 # train the network
 H = model.fit(
     x=zip(X_train_gen, Y_train_gen),
-    steps_per_epoch=X_train_gen.n // config.batch_size,
     epochs=config.training_epochs,
     verbose=1,
     callbacks=callbacks,
