@@ -45,12 +45,10 @@ def train():
     # train the network
     H = model.fit_generator(
         generator=train_gen,
-        steps_per_epoch=train_gen.samples // config.batch_size + 1,
         epochs=config.training_epochs,
         verbose=1,
         callbacks=callbacks,
         validation_data=validation_gen,
-        validation_steps=validation_gen.samples // config.batch_size + 1,
         initial_epoch=config.model_epoch)
 
     confusion_matrix(config, model, validation_gen)

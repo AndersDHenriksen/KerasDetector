@@ -47,12 +47,10 @@ def train(model=None, config=None):
     # train the network
     H = model.fit_generator(
         generator=train_gen,
-        steps_per_epoch=train_gen.samples // config.batch_size + 1,
         epochs=training_epoch,
         verbose=1,
         callbacks=callbacks,
         validation_data=validation_gen,
-        validation_steps=validation_gen.samples // config.batch_size + 1,
         initial_epoch=config.model_epoch)
 
     if not model.is_in_warmup:
