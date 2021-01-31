@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # Add module to path
 from dl_tools.utils.read_config import process_config
 from dl_tools.nn.TL_MobileNet2 import MobileNet2
-from dl_tools.utils.eval_tools import confusion_matrix
+from dl_tools.utils.eval_tools import confusion_matrix, show_errors
 from dl_tools.utils.tensorboardtools import tensorboard_launch
 from dl_tools.callbacks.epochcheckpoint import EpochCheckpoint
 from dl_tools.data_loader.data_generator import get_data_for_classification
@@ -55,6 +55,8 @@ def train(model=None, config=None):
 
     if not model.is_in_warmup:
         confusion_matrix(config, model, validation_gen)
+        if input("Enter 1 to see errors: ") == "1":
+            show_errors(model, validation_gen)
         print('Fine tuning done. Now take the best model and pass it through freeze_tools.finalize_for_ocv')
         return
     print("Model warmup done. Taking the last model and passing it through train again")
