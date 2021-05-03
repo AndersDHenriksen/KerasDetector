@@ -25,14 +25,16 @@ def get_data_for_classification(config, preprocess_input=None, split_data_files=
         config.data_folder_test = str(config.data_folder / 'Test')
 
         # Load data generators
-        aug_gen = ImageDataGenerator(preprocessing_function=preprocess_input, width_shift_range=4, height_shift_range=4,
+        aug_gen = ImageDataGenerator(preprocessing_function=preprocess_input, width_shift_range=30, height_shift_range=30,
                                      rotation_range=360, vertical_flip=True, horizontal_flip=True,
-                                     brightness_range=[0.95, 1.05], zoom_range=0.05)
+                                     brightness_range=[0.8, 1.2], zoom_range=0.1)
         rescale_gen = ImageDataGenerator(preprocessing_function=preprocess_input)
         train_gen = aug_gen.flow_from_directory(config.data_folder_train, batch_size=config.batch_size,
-                                                class_mode='categorical', target_size=target_size)
+                                                class_mode='categorical', target_size=target_size,
+                                                color_mode="grayscale" if config.input_shape[2] == 1 else 'rgb')
         validation_gen = rescale_gen.flow_from_directory(config.data_folder_test, batch_size=config.batch_size,
-                                                         class_mode='categorical', target_size=target_size)
+                                                         class_mode='categorical', target_size=target_size,
+                                                         color_mode="grayscale" if config.input_shape[2] == 1 else 'rgb')
     else:
         # Load data generators
         data_gen = ImageDataGenerator(preprocessing_function=preprocess_input, width_shift_range=4, height_shift_range=4,

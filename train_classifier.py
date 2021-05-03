@@ -43,8 +43,7 @@ def train():
     tensorboard_launch(config.experiment_folder)
 
     # train the network
-    H = model.fit_generator(
-        generator=train_gen,
+    H = model.fit(train_gen,
         epochs=config.training_epochs,
         verbose=1,
         callbacks=callbacks,
