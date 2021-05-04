@@ -6,7 +6,6 @@
   "test_split_ratio": 0.3,
   "learning_rate": 0.00002,
   "use_learning_rate_decay": false,
-  "save_final_model": false,
   "data_folder": "E:/NN/Data/NovoZymesCloth",
   "experiment_folder": "E:/NN/Experiments/NovoZymesCloth"
 }

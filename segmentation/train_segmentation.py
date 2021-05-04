@@ -67,6 +67,3 @@ H = model.fit(
     callbacks=callbacks,
     validation_data=(X_test, Y_test),
     initial_epoch=config.model_epoch)
-
-if config.save_final_model:
-    model.save(config.checkpoint_dir + "final_model.hdf5")

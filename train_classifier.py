@@ -3,8 +3,8 @@ from dl_tools.nn.mediumnet import MediumNet
 from dl_tools.callbacks.epochcheckpoint import EpochCheckpoint
 from dl_tools.data_loader.data_generator import get_data_for_classification
 from dl_tools.utils.read_config import process_config
-from dl_tools.utils.eval_tools import confusion_matrix
-from dl_tools.utils.freeze_tools import finalize_for_ocv
+from dl_tools.utils.eval_tools import confusion_matrix, show_errors
+from dl_tools.utils.freeze_tools import finalize_for_ocv_tf2
 from dl_tools.utils.tensorboardtools import tensorboard_launch
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
@@ -51,12 +51,11 @@ def train():
         initial_epoch=config.model_epoch)
 
     confusion_matrix(config, model, validation_gen)
-    print('Training done. Now take the best model and pass it through freeze_tools.finalize_for_ocv')
-
-    if config.save_final_model:
-        save_model_path = config.checkpoint_dir + "final_model.hdf5"
-        model.save(save_model_path)
-        finalize_for_ocv(save_model_path)
+    if input("Enter 1 to see errors: ") == "1":
+        show_errors(model, validation_gen)
+    if input("Enter 1 to convert best model for OpenCV inference"):
+        best_model_path = sorted(Path(config.checkpoint_dir).glob("best*.hdf5"))[-1]
+        finalize_for_ocv_tf2(str(best_model_path))
 
 
 if __name__ == '__main__':

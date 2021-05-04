@@ -16,7 +16,8 @@ def finalize_for_ocv_tf2(model_path):
     loaded = tf.saved_model.load(tf_model_path)
     # Convert to function then graph
     infer = loaded.signatures['serving_default']
-    f = tf.function(infer).get_concrete_function(input_1=tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype))
+    input_kwargs = {model.input.name[:-2]: tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype)}
+    f = tf.function(infer).get_concrete_function(**input_kwargs)
     f2 = convert_variables_to_constants_v2(f)
     graph_def = f2.graph.as_graph_def()
     # Export frozen graph
@@ -106,7 +107,6 @@ def keras_to_opencv(model_path):  # Made by Christian, works for OpenCV 4.1. For
     print('Saved optimized graph (ready for inference) at: ', os.path.join(output_folder, optimized_graph_name))
 
 
-
 # ---------------------------------------------- Old currently unused --------------------------------------------------
 
 
@@ -146,8 +146,6 @@ def save_frozon_protobuf(hdf5_path, clear_devices=True):
     tf.train.write_graph(graph_def, str(hdf5_path.parent), hdf5_path.stem + '.pbtxt', as_text=True)
 
 
-
-
 def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
     """
     Freezes the state of a session into a pruned computation graph.
@@ -177,7 +175,6 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
         frozen_graph = convert_variables_to_constants(session, input_graph_def,
                                                       output_names, freeze_var_names)
         return frozen_graph
-
 
 
 def save_frozen_protobuf2(save_path, session, output_names=None, clear_devices=True):
@@ -218,3 +215,7 @@ def save_frozen_protobuf2(save_path, session, output_names=None, clear_devices=T
                               "save/Const:0",
                               str(save_path)[:-3] + '_frozen.pb',
                               clear_devices, "")
+
+
+if __name__ == "__main__":
+    finalize_for_ocv_tf2(r"\best\model\path\model.hdf5")
