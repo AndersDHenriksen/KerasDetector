@@ -45,7 +45,6 @@ def train():
     # train the network
     H = model.fit(train_gen,
         epochs=config.training_epochs,
-        verbose=1,
         callbacks=callbacks,
         validation_data=validation_gen,
         initial_epoch=config.model_epoch)
@@ -53,7 +52,7 @@ def train():
     confusion_matrix(config, model, validation_gen)
     if input("Enter 1 to see errors: ") == "1":
         show_errors(model, validation_gen)
-    if input("Enter 1 to convert best model for OpenCV inference"):
+    if input("Enter 1 to convert best model for OpenCV inference") == "1":
         best_model_path = sorted(Path(config.checkpoint_dir).glob("best*.hdf5"))[-1]
         finalize_for_ocv_tf2(str(best_model_path))
 
